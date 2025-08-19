@@ -7,6 +7,6 @@ munchy:
 test:
 	cross clean
 	cross build --target x86_64-pc-windows-gnu --release
-	wine target/x86_64-pc-windows-gnu/release/munchy.exe
+	wine target/x86_64-pc-windows-gnu/release/munchy.exe test
 
 	@echo "exit code: $$?"
