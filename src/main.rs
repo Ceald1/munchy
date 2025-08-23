@@ -29,7 +29,11 @@ fn main() {
             "test" => { // testing
                 unsafe{
                     let a_data: Option<*const std::ffi::c_void> = None;
-                    let a = utils::api::cred_handle(a_data, "krbtgt/TEST.LOCAL".to_string());
+                    let a = utils::api::cred_handle(a_data, Some("Administrator@TEST.LOCAL".to_string()));
+                    let secHandle = a.unwrap();
+                    let flags = windows::Win32::Security::Authentication::Identity::ISC_REQ_MUTUAL_AUTH;
+                    let b = utils::api::NewSecurityContext(flags, secHandle, "KRBTGT/TEST.LOCAL".to_string());
+                    println!("{:?}", b)
                 }
 
             }
