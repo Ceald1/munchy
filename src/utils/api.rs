@@ -13,6 +13,7 @@ use windows::Win32::Security::Authentication::Identity::{
     KERB_CRYPTO_KEY_TYPE, KERB_PROTOCOL_MESSAGE_TYPE, KERB_QUERY_TKT_CACHE_REQUEST,
 	    KERB_QUERY_TKT_CACHE_RESPONSE, KERB_RETRIEVE_TKT_REQUEST, KERB_RETRIEVE_TKT_RESPONSE, KERB_SUBMIT_TKT_REQUEST,
 		KERB_TICKET_CACHE_INFO_EX, LSA_STRING, SECURITY_LOGON_SESSION_DATA,
+        KERB_REQUEST_FLAGS,
 
     SECPKG_CRED_OUTBOUND,
 
@@ -26,9 +27,9 @@ use windows::Win32::Foundation::{HANDLE, LUID, NTSTATUS};
 use windows_core::{Error, PSTR, PWSTR, PCSTR};
 
 
-// LSA Stuff
-pub unsafe fn ap_req<T>(preAuth: Option<T>,service_principal_name: String) -> Option<SecHandle>{
-    // make an AP-REQ with or without preAuth.
+// LSA Stuff, public functions
+pub unsafe fn cred_handle<T>(pre_auth: Option<T>,service_principal_name: String) -> Option<SecHandle>{
+    // make a Cred Handle
     unsafe{
 
         // convert spn to bytes array pointer
@@ -49,7 +50,7 @@ pub unsafe fn ap_req<T>(preAuth: Option<T>,service_principal_name: String) -> Op
         if pkg_found == false{
             return None;
         }
-        let pauth_ptr: Option<*const std::ffi::c_void> = preAuth.as_ref().map(|v| v as *const T as *const std::ffi::c_void);
+        let pauth_ptr: Option<*const std::ffi::c_void> = pre_auth.as_ref().map(|v| v as *const T as *const std::ffi::c_void);
         let mut credHandle: SecHandle = SecHandle::default();
         let mut lifetime = 0;
         let status = AcquireCredentialsHandleA(
@@ -75,6 +76,16 @@ pub unsafe fn ap_req<T>(preAuth: Option<T>,service_principal_name: String) -> Op
     }
 }
 
+
+
+
+
+
+
+
+
+
+// private functions
 unsafe fn initHandle() -> Option<HANDLE> {
     // helper functions for prep
     unsafe{

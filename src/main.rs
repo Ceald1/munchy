@@ -29,7 +29,7 @@ fn main() {
             "test" => { // testing
                 unsafe{
                     let a_data: Option<*const std::ffi::c_void> = None;
-                    let a = utils::api::ap_req(a_data, "krbtgt/TEST.LOCAL".to_string());
+                    let a = utils::api::cred_handle(a_data, "krbtgt/TEST.LOCAL".to_string());
                 }
 
             }
