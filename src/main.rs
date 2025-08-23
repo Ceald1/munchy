@@ -27,7 +27,8 @@ fn main() {
         match o.as_str(){
             "test" => {
                 unsafe{
-                    let a = utils::api::init_kerberos_cred_handle("krbtgt/TEST.LOCAL".to_string());
+                    let a_data: Option<*const std::ffi::c_void> = None;
+                    let a = utils::api::init_kerberos_cred_handle(a_data, "krbtgt/TEST.LOCAL".to_string());
                 }
 
             }

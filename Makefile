@@ -21,7 +21,7 @@ config:
 	
 
 test:
-	cross clean
+	# cross clean
 	cross build --target x86_64-pc-windows-gnu --release
 	WINEDEBUG=+secur32,+lsa,+kerberos wine target/x86_64-pc-windows-gnu/release/munchy.exe test
 

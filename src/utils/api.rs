@@ -1,3 +1,5 @@
+use std::ptr;
+
 use windows::Win32::Security::Authentication::Identity::{
     AcquireCredentialsHandleA,
     LsaCallAuthenticationPackage,
@@ -12,6 +14,8 @@ use windows::Win32::Security::Authentication::Identity::{
 	    KERB_QUERY_TKT_CACHE_RESPONSE, KERB_RETRIEVE_TKT_REQUEST, KERB_RETRIEVE_TKT_RESPONSE, KERB_SUBMIT_TKT_REQUEST,
 		KERB_TICKET_CACHE_INFO_EX, LSA_STRING, SECURITY_LOGON_SESSION_DATA,
 
+    SECPKG_CRED_OUTBOUND,
+
 };
 use windows::Win32::Security::Credentials::SecHandle;
 use windows::Win32::Foundation::LocalFree;
@@ -23,13 +27,15 @@ use windows_core::{Error, PSTR, PWSTR, PCSTR};
 
 
 // LSA Stuff
-pub unsafe fn init_kerberos_cred_handle(service_principal_name: String) -> Option<HANDLE>{
+pub unsafe fn init_kerberos_cred_handle<T>(preAuth: Option<T>,service_principal_name: String) -> Option<SecHandle>{
     unsafe{
+
         // initialize credential handle
-        let spn_vec = service_principal_name.into_bytes();
+        let mut spn_vec = service_principal_name.into_bytes();
         spn_vec.push(0);
-        let mut spn: &'static [u8] = &spn_vec;
-        let resp = unsafe { initHandle() };
+        let spn: &[u8] = &spn_vec;
+        
+        let resp = initHandle();
         let pkg_name = b"Kerberos\0";
 
         if resp == None {
@@ -37,16 +43,33 @@ pub unsafe fn init_kerberos_cred_handle(service_principal_name: String) -> Optio
         }
         let lsa_handle = resp.unwrap();
         
-        let pkg_found = unsafe { lookup_kerb(lsa_handle) };
+        let pkg_found = lookup_kerb(lsa_handle);
         if pkg_found == false{
             return None;
         }
-        let ntstatus = AcquireCredentialsHandleA(
-            PCSTR(spn.as_ptr()),
-            PCSTR(pkg_name.as_ptr()),
-        );
+        let pauth_ptr: Option<*const std::ffi::c_void> = preAuth.as_ref().map(|v| v as *const T as *const std::ffi::c_void);
+        let mut credHandle: SecHandle = SecHandle::default();
+        let mut lifetime = 0;
+        let status = AcquireCredentialsHandleA(
+                PCSTR(spn.as_ptr()),
+                PCSTR(pkg_name.as_ptr()),
+                SECPKG_CRED_OUTBOUND,
+                None,
+                pauth_ptr,
+                None,
+                None,
+                &mut credHandle,
+                Some(ptr::addr_of_mut!(lifetime)),
 
-        return None;
+            );
+        
+        match status {
+            Ok(()) => return Some(credHandle),
+            Err(e) => {
+                eprintln!("AcquireCredentialsHandleA failed: {:?}", e);
+                return None;
+            },
+        }
     }
 }
 
