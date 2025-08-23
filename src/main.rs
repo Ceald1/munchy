@@ -2,6 +2,7 @@ use clap::Parser;
 use windows::Win32::Foundation::HANDLE;
 mod utils;
 
+// initialize struct for commandline app
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)] // Reads version from Cargo.toml, uses doc comment for about
 struct CLI {
@@ -17,28 +18,28 @@ _____________,-.___     _
 |   `-----.____} }]_]_]_   ,
 |_____________/ {_]_]_]_] , `
             `-'
-"#;
+"#; // art
 
 fn main() {
-    let cli = CLI::parse();
-    println!("{}", ART);
-    let op:Vec<String> = cli.op;
+    let cli = CLI::parse(); // initialize cli variable for parsing
+    println!("{}", ART); // print art
+    let op:Vec<String> = cli.op; // convert ops to a Vc<String> to loop through.
     for o in op{
-        match o.as_str(){
-            "test" => {
+        match o.as_str(){ // match case statements (rust's version of case switch statements)
+            "test" => { // testing
                 unsafe{
                     let a_data: Option<*const std::ffi::c_void> = None;
-                    let a = utils::api::init_kerberos_cred_handle(a_data, "krbtgt/TEST.LOCAL".to_string());
+                    let a = utils::api::ap_req(a_data, "krbtgt/TEST.LOCAL".to_string());
                 }
 
             }
-            "elevate" => {
+            "elevate" => { // elevate token (might be needed later)
                 let sysPID: u32 = utils::token::getSysProcess();
                 let woot: Option<HANDLE> = utils::token::get_system(sysPID);
                 println!("{:?}", woot)
             }
             _ => {
-                todo!("")
+                todo!("") // default
             }
         }
     }

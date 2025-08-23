@@ -27,23 +27,25 @@ use windows_core::{Error, PSTR, PWSTR, PCSTR};
 
 
 // LSA Stuff
-pub unsafe fn init_kerberos_cred_handle<T>(preAuth: Option<T>,service_principal_name: String) -> Option<SecHandle>{
+pub unsafe fn ap_req<T>(preAuth: Option<T>,service_principal_name: String) -> Option<SecHandle>{
+    // make an AP-REQ with or without preAuth.
     unsafe{
 
-        // initialize credential handle
+        // convert spn to bytes array pointer
         let mut spn_vec = service_principal_name.into_bytes();
         spn_vec.push(0);
         let spn: &[u8] = &spn_vec;
         
-        let resp = initHandle();
-        let pkg_name = b"Kerberos\0";
+
+        let resp = initHandle(); // initialize a handle for looking up the kerberos package
+        let pkg_name = b"Kerberos\0"; // package name
 
         if resp == None {
             return None;
         }
         let lsa_handle = resp.unwrap();
         
-        let pkg_found = lookup_kerb(lsa_handle);
+        let pkg_found = lookup_kerb(lsa_handle); // lookup  kerberos package
         if pkg_found == false{
             return None;
         }
@@ -51,19 +53,19 @@ pub unsafe fn init_kerberos_cred_handle<T>(preAuth: Option<T>,service_principal_
         let mut credHandle: SecHandle = SecHandle::default();
         let mut lifetime = 0;
         let status = AcquireCredentialsHandleA(
-                PCSTR(spn.as_ptr()),
-                PCSTR(pkg_name.as_ptr()),
-                SECPKG_CRED_OUTBOUND,
-                None,
-                pauth_ptr,
-                None,
-                None,
-                &mut credHandle,
-                Some(ptr::addr_of_mut!(lifetime)),
+                PCSTR(spn.as_ptr()), // service name goes in as the first argument
+                PCSTR(pkg_name.as_ptr()), // package name
+                SECPKG_CRED_OUTBOUND, // user flags
+                None, // logonID (None for current user)
+                pauth_ptr, // Pre Authentication data
+                None, // function for callback to retrieve creds
+                None, // argument for callback function
+                &mut credHandle, // output handle
+                Some(ptr::addr_of_mut!(lifetime)), // lifetime of the credentials
 
             );
         
-        match status {
+        match status { // check if ok
             Ok(()) => return Some(credHandle),
             Err(e) => {
                 eprintln!("AcquireCredentialsHandleA failed: {:?}", e);
@@ -74,11 +76,12 @@ pub unsafe fn init_kerberos_cred_handle<T>(preAuth: Option<T>,service_principal_
 }
 
 unsafe fn initHandle() -> Option<HANDLE> {
+    // helper functions for prep
     unsafe{
-        let mut lsa_handle:HANDLE = HANDLE(std::ptr::null_mut());
+        let mut lsa_handle:HANDLE = HANDLE(std::ptr::null_mut()); // initialize handle
         let ntstatus:NTSTATUS = LsaConnectUntrusted(
             &mut lsa_handle as *mut HANDLE,
-        );
+        ); // establish untrusted connection
         if ntstatus.0 != 0 {
             println!("NTSTATUS initHandle (hex): 0x{:08X}", ntstatus.0 as u32);
             return None;
@@ -89,6 +92,7 @@ unsafe fn initHandle() -> Option<HANDLE> {
 
 
 unsafe fn lookup_kerb(lsa_handle: HANDLE)-> bool {
+    // lookup kerberos package (just for error checking, don't really NEED this)
     unsafe{
         let pkg_name = b"Kerberos\0";
         let mut pkg_name_struct = LSA_STRING {
@@ -110,10 +114,10 @@ unsafe fn lookup_kerb(lsa_handle: HANDLE)-> bool {
 
         // Typically, you'd check for success before returning a handle
         if ntstatus.0 == 0 {
-            return true;
+            return true; // found kerberos package.
         } else {
             println!("NTSTATUS (hex): 0x{:08X}", ntstatus.0 as u32);
-            return false;
+            return false; // can't find it.
         }
     }
 }
