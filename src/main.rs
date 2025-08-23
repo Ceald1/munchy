@@ -26,6 +26,12 @@ fn main() {
     for o in op{
         match o.as_str(){
             "test" => {
+                unsafe{
+                    let a = utils::api::init_kerberos_cred_handle("krbtgt/TEST.LOCAL".to_string());
+                }
+
+            }
+            "elevate" => {
                 let sysPID: u32 = utils::token::getSysProcess();
                 let woot: Option<HANDLE> = utils::token::get_system(sysPID);
                 println!("{:?}", woot)

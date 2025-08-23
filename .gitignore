@@ -1,3 +1,9 @@
 /target
+.vagrant/
 *.ccache
 *.kirbi
+*.env
+.env
+
+Vagrantfile
+*.rb
