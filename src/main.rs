@@ -35,7 +35,7 @@ fn main() {
                     println!("Got secHandle");
                     
                     let flags = windows::Win32::Security::Authentication::Identity::ISC_REQ_MUTUAL_AUTH | windows::Win32::Security::Authentication::Identity::ISC_REQ_INTEGRITY | windows::Win32::Security::Authentication::Identity::ISC_REQ_CONNECTION;
-                    const SPN: &str = "KRBTGT/TEST.LOCAL";
+                    const SPN: &str = "HTTP/WIN-OBNU3U147RE.TEST.LOCAL";
                     let b = utils::api::NewSecurityContext(flags, secHandle, SPN.to_string());
                     println!("NewSecurityContext completed: b={:?}", b.unwrap());
                     

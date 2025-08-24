@@ -28,6 +28,7 @@ use windows::Win32::Foundation::{
     SEC_I_CONTINUE_NEEDED,
     SEC_E_OK,
     SEC_I_COMPLETE_AND_CONTINUE,
+    SEC_I_COMPLETE_NEEDED,
 };
 
 use windows::Win32::Security::ImpersonateLoggedOnUser;
