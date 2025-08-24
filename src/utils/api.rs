@@ -1,4 +1,5 @@
 use std::any::Any;
+use std::io::Write;
 use std::ptr;
 
 use windows::Win32::Security::Authentication::Identity::{
@@ -10,28 +11,49 @@ use windows::Win32::Security::Authentication::Identity::{
     LsaGetLogonSessionData,
     LsaLookupAuthenticationPackage,
     InitializeSecurityContextA,
+    AcceptSecurityContext,
+    CompleteAuthToken,
 
     KERB_CRYPTO_KEY_TYPE, KERB_PROTOCOL_MESSAGE_TYPE, KERB_QUERY_TKT_CACHE_REQUEST,
 	    KERB_QUERY_TKT_CACHE_RESPONSE, KERB_RETRIEVE_TKT_REQUEST, KERB_RETRIEVE_TKT_RESPONSE, KERB_SUBMIT_TKT_REQUEST,
 		KERB_TICKET_CACHE_INFO_EX, LSA_STRING, SECURITY_LOGON_SESSION_DATA,
         KERB_REQUEST_FLAGS, ISC_REQ_FLAGS, SECURITY_NATIVE_DREP, SECBUFFER_TOKEN, SECBUFFER_VERSION,
 
-    SECPKG_CRED_OUTBOUND,ISC_REQ_MUTUAL_AUTH, SecBuffer, SecBufferDesc,
+    SECPKG_CRED_OUTBOUND, SECPKG_CRED_INBOUND,ISC_REQ_MUTUAL_AUTH, SecBuffer, SecBufferDesc, ISC_REQ_DELEGATE, ISC_REQ_ALLOCATE_MEMORY, ASC_REQ_FLAGS,
 
 };
 use windows::Win32::Security::Credentials::SecHandle;
 use windows::Win32::Foundation::LocalFree;
+use windows::Win32::Foundation::{
+    SEC_I_CONTINUE_NEEDED,
+    SEC_E_OK,
+    SEC_I_COMPLETE_AND_CONTINUE,
+};
 
 use windows::Win32::Security::ImpersonateLoggedOnUser;
 use windows::Win32::Foundation::{HANDLE, LUID, NTSTATUS};
 
 use windows_core::{Error, PSTR, PWSTR, PCSTR};
+use std::mem::MaybeUninit;
 
 const MAX_TOKEN_SIZE: usize = 48 * 1024;
 
 // LSA Stuff, public functions
-pub unsafe fn cred_handle<T>(pre_auth: Option<T>,user_principal_name: Option<String>) -> Option<SecHandle>{
-    // make a Cred Handle, user_principal_name is which UPN to use, None will be the current user
+
+/// Brief.
+/// 
+/// Description.
+/// 
+/// make a Cred Handle, user_principal_name is which UPN to use, None will be the current user, true for inbound, false for outbound
+/// 
+/// Example:
+/// ```
+/// let a_data: Option<*const std::ffi::c_void> = None;
+/// 
+/// let a = utils::api::cred_handle(a_data, Some("Administrator@TEST.LOCAL".to_string()), false);
+/// ```
+pub unsafe fn cred_handle<T>(pre_auth: Option<T>,user_principal_name: Option<String>, in_or_out:  bool) -> Option<SecHandle>{
+    
     unsafe{
         // convert upn to bytes array pointer
         let upn: PCSTR = user_principal_name.as_ref().map(|s| {
@@ -40,6 +62,10 @@ pub unsafe fn cred_handle<T>(pre_auth: Option<T>,user_principal_name: Option<Str
             upn_vec.push(0);
             PCSTR(upn_vec.as_ptr())
         }).unwrap();
+        let direction = SECPKG_CRED_OUTBOUND;
+        if in_or_out == true {
+            let direction = SECPKG_CRED_INBOUND;
+        }
         
         
 
@@ -62,7 +88,7 @@ pub unsafe fn cred_handle<T>(pre_auth: Option<T>,user_principal_name: Option<Str
                 upn,
                 // PCSTR(upn.as_ptr()), // user principal name goes in as the first argument
                 PCSTR(pkg_name.as_ptr()), // package name
-                SECPKG_CRED_OUTBOUND, // user flags
+                direction, // user flags
                 None, // logonID (None for current user)
                 pauth_ptr, // Pre Authentication data
                 None, // function for callback to retrieve creds
@@ -82,7 +108,22 @@ pub unsafe fn cred_handle<T>(pre_auth: Option<T>,user_principal_name: Option<Str
     }
 }
 
+
+/// Brief.
+/// 
+/// Description.
+/// 
+/// create a new security context buffer and return the buffer and context.
+/// 
+/// Example:
+/// 
+/// ```
+/// let flags = windows::Win32::Security::Authentication::Identity::ISC_REQ_MUTUAL_AUTH | windows::Win32::Security::Authentication::Identity::ISC_REQ_DELEGATE | windows::Win32::Security::Authentication::Identity::ISC_REQ_ALLOCATE_MEMORY;
+/// 
+/// let b = utils::api::NewSecurityContext(flags, secHandle, "KRBTGT/TEST.LOCAL".to_string());
+/// ```
 pub unsafe fn NewSecurityContext(flags: ISC_REQ_FLAGS, mut credHandle: SecHandle, service_principal_name: String) -> Option<SecBufferDesc> {
+    
     unsafe {
         // convert spn to bytes array pointer
         let mut spn = service_principal_name.as_ptr() as *const i8;
@@ -92,7 +133,6 @@ pub unsafe fn NewSecurityContext(flags: ISC_REQ_FLAGS, mut credHandle: SecHandle
         //context crap, it just gets the output structure ready for the function.
         let mut buf = Vec::with_capacity(MAX_TOKEN_SIZE);
         buf.resize(MAX_TOKEN_SIZE, 0);
-        let mut cx: SecHandle = SecHandle::default();
         let mut cx_attrs = 0u32;
         let mut sec_buffer = [SecBuffer {
             BufferType: SECBUFFER_TOKEN,
@@ -104,6 +144,7 @@ pub unsafe fn NewSecurityContext(flags: ISC_REQ_FLAGS, mut credHandle: SecHandle
             cBuffers: sec_buffer.len() as u32,
             pBuffers: sec_buffer.as_mut_ptr(),
         };
+        let mut new_context: MaybeUninit<SecHandle> = MaybeUninit::uninit();
 
 
 
@@ -118,13 +159,13 @@ pub unsafe fn NewSecurityContext(flags: ISC_REQ_FLAGS, mut credHandle: SecHandle
             SECURITY_NATIVE_DREP,
             None,
             0,
-            Some(&mut cx),
+            Some(new_context.as_mut_ptr()),
             Some(&mut buffer_desc),
             &mut cx_attrs,
             Some(ptr::addr_of_mut!(lifetime)), // lifetime of the credentials,
         );
         match status {
-            windows::Win32::Foundation::SEC_E_OK => {
+            SEC_E_OK => {
                 // Access the buffer from sec_buffer, not buffer_desc
                 buf.resize(sec_buffer[0].cbBuffer as usize, 0);
                 if !buf.is_empty() {
@@ -133,11 +174,27 @@ pub unsafe fn NewSecurityContext(flags: ISC_REQ_FLAGS, mut credHandle: SecHandle
                     return None;
                 }
             }
-            windows::Win32::Foundation::SEC_I_CONTINUE_NEEDED => {
+            SEC_I_CONTINUE_NEEDED | SEC_I_COMPLETE_AND_CONTINUE => {
                 // Handle the case where more data is needed
                 println!("more data is needed! This is Normal and NOT an error!");
                 buf.resize(sec_buffer[0].cbBuffer as usize, 0);
-                return Some(buffer_desc); // return the full buffer
+                let cx = Some(new_context.assume_init());
+                let context = cx.as_ref().expect("A token should be present") as *const _;
+                let status = CompleteAuthToken(
+                    context,
+                    ptr::addr_of!(buffer_desc),
+                );
+                match status {
+                    Ok(()) => {
+                        return Some(buffer_desc);
+                    },
+                    Err(e) => {
+                        eprintln!("Error initializing context: {:?}", e);
+                        return None;
+                    }
+                }
+                
+                
             }
             error_code => {
                 eprintln!("InitializeSecurityContextA failed with error: 0x{:X}", error_code.0);
@@ -148,7 +205,28 @@ pub unsafe fn NewSecurityContext(flags: ISC_REQ_FLAGS, mut credHandle: SecHandle
     
 }
 
+// /// Brief.
+// /// 
+// /// Description.
+// /// 
+// /// This function is for after initializing a security context and with an inbound SecHandle.
+// /// 
+// /// Example
+// /// ```
+// /// 
+// /// ```
+pub unsafe fn UpdateSecurityContext(flags: ISC_REQ_FLAGS, mut credHandle: SecHandle, service_principal_name: String, mut client: SecBufferDesc, mut existing_ctx: SecHandle) -> Option<SecBufferDesc> {
+    unsafe {
+        let mut spn = service_principal_name.as_ptr() as *const i8;
+        let mut lifetime = 0;
 
+
+        return  None;
+    }
+
+       
+
+}
 
 
 

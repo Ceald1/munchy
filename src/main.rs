@@ -26,16 +26,25 @@ fn main() {
     let op:Vec<String> = cli.op; // convert ops to a Vc<String> to loop through.
     for o in op{
         match o.as_str(){ // match case statements (rust's version of case switch statements)
-            "test" => { // testing
+            "test" => { 
                 unsafe{
+                    println!("Starting test...");
                     let a_data: Option<*const std::ffi::c_void> = None;
-                    let a = utils::api::cred_handle(a_data, Some("Administrator@TEST.LOCAL".to_string()));
+                    let a = utils::api::cred_handle(a_data, Some("Administrator@TEST.LOCAL".to_string()), false);
                     let secHandle = a.unwrap();
-                    let flags = windows::Win32::Security::Authentication::Identity::ISC_REQ_MUTUAL_AUTH;
-                    let b = utils::api::NewSecurityContext(flags, secHandle, "KRBTGT/TEST.LOCAL".to_string());
-                    println!("{:?}", b)
+                    println!("Got secHandle");
+                    
+                    let flags = windows::Win32::Security::Authentication::Identity::ISC_REQ_MUTUAL_AUTH | windows::Win32::Security::Authentication::Identity::ISC_REQ_DELEGATE | windows::Win32::Security::Authentication::Identity::ISC_REQ_ALLOCATE_MEMORY;
+                    const SPN: &str = "KRBTGT/TEST.LOCAL";
+                    let b = utils::api::NewSecurityContext(flags, secHandle, SPN.to_string());
+                    println!("NewSecurityContext completed: b={:?}", b.unwrap());
+                    
+                    let inCred = utils::api::cred_handle(a_data, Some("Administrator@TEST.LOCAL".to_string()), true).unwrap();
+                    // println!("Got inCred, about to call UpdateSecurityContext");
+                    
+                    // let d = utils::api::UpdateSecurityContext(flags, inCred, SPN.to_string(), b.unwrap(), c.unwrap());
+                    // println!("UpdateSecurityContext completed: {:?}", d.is_some());
                 }
-
             }
             "elevate" => { // elevate token (might be needed later)
                 let sysPID: u32 = utils::token::getSysProcess();
