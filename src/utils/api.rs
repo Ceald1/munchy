@@ -19,7 +19,7 @@ use windows::Win32::Security::Authentication::Identity::{
 		KERB_TICKET_CACHE_INFO_EX, LSA_STRING, SECURITY_LOGON_SESSION_DATA,
         KERB_REQUEST_FLAGS, ISC_REQ_FLAGS, SECURITY_NATIVE_DREP, SECBUFFER_TOKEN, SECBUFFER_VERSION,
 
-    SECPKG_CRED_OUTBOUND, SECPKG_CRED_INBOUND,ISC_REQ_MUTUAL_AUTH, SecBuffer, SecBufferDesc, ISC_REQ_DELEGATE, ISC_REQ_ALLOCATE_MEMORY, ASC_REQ_FLAGS,
+    SECPKG_CRED_OUTBOUND, SECPKG_CRED_INBOUND,ISC_REQ_MUTUAL_AUTH, SecBuffer, SecBufferDesc, ISC_REQ_DELEGATE, ISC_REQ_ALLOCATE_MEMORY, ASC_REQ_FLAGS, ISC_REQ_CONNECTION, ISC_REQ_INTEGRITY,
 
 };
 use windows::Win32::Security::Credentials::SecHandle;
@@ -113,7 +113,7 @@ pub unsafe fn cred_handle<T>(pre_auth: Option<T>,user_principal_name: Option<Str
 /// 
 /// Description.
 /// 
-/// create a new security context buffer and return the buffer and context.
+/// create a new security context buffer and return the buffer.
 /// 
 /// Example:
 /// 
@@ -174,9 +174,8 @@ pub unsafe fn NewSecurityContext(flags: ISC_REQ_FLAGS, mut credHandle: SecHandle
                     return None;
                 }
             }
-            SEC_I_CONTINUE_NEEDED | SEC_I_COMPLETE_AND_CONTINUE => {
-                // Handle the case where more data is needed
-                println!("more data is needed! This is Normal and NOT an error!");
+            SEC_I_COMPLETE_AND_CONTINUE | SEC_I_COMPLETE_NEEDED => {
+                // Handle the case where server interaction is needed
                 buf.resize(sec_buffer[0].cbBuffer as usize, 0);
                 let cx = Some(new_context.assume_init());
                 let context = cx.as_ref().expect("A token should be present") as *const _;
@@ -196,6 +195,14 @@ pub unsafe fn NewSecurityContext(flags: ISC_REQ_FLAGS, mut credHandle: SecHandle
                 
                 
             }
+            SEC_I_CONTINUE_NEEDED => {
+                println!("Need more processing...");
+                buf.resize(sec_buffer[0].cbBuffer as usize, 0);
+                return Some(buffer_desc);
+
+                    
+            }
+
             error_code => {
                 eprintln!("InitializeSecurityContextA failed with error: 0x{:X}", error_code.0);
                 return None;
