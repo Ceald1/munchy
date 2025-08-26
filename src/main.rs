@@ -57,6 +57,20 @@ fn main() {
 
                 }
             }
+            "tgt" => {
+                unsafe {
+
+                    let cred_data: Option<*const std::ffi::c_void> = None;
+                    let secHandle = utils::api::cred_handle(cred_data, Some(cli.upn.clone()), false).unwrap();
+                    let flags = windows::Win32::Security::Authentication::Identity::ISC_REQ_INTEGRITY | windows::Win32::Security::Authentication::Identity::ISC_REQ_CONNECTION;
+                    let pre = String::from("krbtgt/");
+                    let spn = pre + cli.upn.as_str();
+
+                    let securityContext = utils::api::NewSecurityContext(flags, secHandle, spn.to_string().clone());
+                    println!("got TGT for user: {:?}", cli.upn)
+                }
+            }
+
             _ => {
                 todo!("") // default
             }
