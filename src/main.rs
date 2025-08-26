@@ -1,4 +1,4 @@
-use clap::Parser;
+use clap::{Parser, command};
 use windows::Win32::Foundation::HANDLE;
 mod utils;
 
@@ -10,6 +10,13 @@ struct CLI {
     op: Vec<String>,
     #[arg(short, long, action = clap::ArgAction::SetTrue)] // Defines -v/--verbose flag
    verbose: bool,
+    // args
+    #[arg(short, long, default_value = "")]
+    upn: String,
+
+    #[arg(short, long, default_value = "")]
+    spn: String,
+
 }
 const ART:&str = r#"
 _____________,-.___     _
@@ -29,27 +36,26 @@ fn main() {
             "test" => { 
                 unsafe{
                     println!("Starting test...");
-                    let a_data: Option<*const std::ffi::c_void> = None;
-                    let a = utils::api::cred_handle(a_data, Some("Administrator@TEST.LOCAL".to_string()), false);
-                    let secHandle = a.unwrap();
-                    println!("Got secHandle");
-                    
-                    let flags = windows::Win32::Security::Authentication::Identity::ISC_REQ_MUTUAL_AUTH | windows::Win32::Security::Authentication::Identity::ISC_REQ_INTEGRITY | windows::Win32::Security::Authentication::Identity::ISC_REQ_CONNECTION;
-                    const SPN: &str = "HTTP/WIN-OBNU3U147RE.TEST.LOCAL";
-                    let b = utils::api::NewSecurityContext(flags, secHandle, SPN.to_string());
-                    println!("NewSecurityContext completed: b={:?}", b.unwrap());
-                    
-                    let inCred = utils::api::cred_handle(a_data, Some("Administrator@TEST.LOCAL".to_string()), true).unwrap();
-                    // println!("Got inCred, about to call UpdateSecurityContext");
-                    
-                    // let d = utils::api::UpdateSecurityContext(flags, inCred, SPN.to_string(), b.unwrap(), c.unwrap());
-                    // println!("UpdateSecurityContext completed: {:?}", d.is_some());
+
                 }
             }
             "elevate" => { // elevate token (might be needed later)
                 let sysPID: u32 = utils::token::getSysProcess();
                 let woot: Option<HANDLE> = utils::token::get_system(sysPID);
                 println!("{:?}", woot)
+            }
+            
+            "tgs" => {
+                unsafe {
+
+                    let cred_data: Option<*const std::ffi::c_void> = None;
+                    let secHandle = utils::api::cred_handle(cred_data, Some(cli.upn.clone()), false).unwrap();
+                    let flags = windows::Win32::Security::Authentication::Identity::ISC_REQ_INTEGRITY | windows::Win32::Security::Authentication::Identity::ISC_REQ_CONNECTION;
+
+                    let securityContext = utils::api::NewSecurityContext(flags, secHandle, cli.spn.clone());
+                    println!("got TGS for user: {:?} for service: {:?}", cli.upn, cli.spn)
+
+                }
             }
             _ => {
                 todo!("") // default
