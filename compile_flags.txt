@@ -1,0 +1,8 @@
+-D_KERNEL_MODE
+-I/usr/x86_64-w64-mingw32/include
+-I/usr/x86_64-w64-mingw32/include/ddk
+-I./include/argtable3/src
+-I./
+-I/opt/obfusheader/include
+-m64
+--target=x86_64-w64-mingw32

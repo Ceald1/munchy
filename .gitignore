@@ -4,6 +4,9 @@
 *.kirbi
 *.env
 .env
-
+build/
+*.exe
+*.dll
+*.o
 Vagrantfile
 *.rb
