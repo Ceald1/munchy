@@ -13,6 +13,7 @@ all: $(TARGET)
 # 4. Link Step: Create the final executable from object files
 $(TARGET): $(OBJS)
 	$(CC) $(CFLAGS) ./include/argtable3/src/*.c -o $(TARGET) $(OBJS)
+	mkdir -p ./build
 	mv *.exe ./build/
 
 # 5. Compile Step: Pattern rule to build .o files from .c files
