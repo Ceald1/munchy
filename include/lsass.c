@@ -65,6 +65,8 @@ HANDLE Find() {
   return procFound;
 }
 
+// reference:
+// https://gist.github.com/GeneralTesler/68903f7eb00f047d32a4d6c55da5a05c
 typedef struct {
   HANDLE orig_hndl;
   HANDLE returned_hndl;
