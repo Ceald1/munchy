@@ -101,7 +101,10 @@ struct command cmds[] = {
 int main(int argc, char *argv[]) {
 
   if (argc < 2) {
-    printf("usage: app <command>\n");
+    printf("usage: munchy.exe <command>\n");
+    for (int i = 0; i < sizeof(cmds) / sizeof(cmds[0]); i++) {
+      printf("munchy.exe %s --help\n", cmds[i].name);
+    }
     return 1;
   }
   const char *cmd = argv[1];
