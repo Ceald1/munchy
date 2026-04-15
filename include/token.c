@@ -1,24 +1,11 @@
 #include "token.h"
 // #include "gate.h"
-#include "gate.c"
+#include "gate.h"
 #include <stdbool.h>
 #include <windows.h>
 
 #include <stdio.h>
 #include <string.h>
-
-typedef enum {
-  DEBUG,
-  IMPERSONATE,
-  BACKUP,
-  TCB,
-  TAKEOWNERSHIP,
-  LOADDRIVER,
-  CREATETOKEN,
-  SECURITY,
-  RELABEL,
-  UNKNOWN_COMMAND,
-} Command;
 
 static RtlAdjustPrivilege_t RtlAdjustPrivilegePtr = NULL;
 
