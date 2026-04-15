@@ -9,6 +9,13 @@
 #include <argtable3.h>
 #include <wincrypt.h>
 #include <windows.h>
+const char *banner = "_____________,-.___     _\n"
+                     "|____        { {]_]_]   [_]\n"
+                     "|___ `-----.__\\ \\_]_]_    . `\n"
+                     "|   `-----.____} }]_]_]_   ,\n"
+                     "|_____________/ {_]_]_]_] , `\n"
+                     "            `-'";
+
 struct command {
   const char *name;
   int (*handler)(int, char **);
@@ -99,7 +106,7 @@ struct command cmds[] = {
 };
 
 int main(int argc, char *argv[]) {
-
+  printf("%s\n", banner);
   if (argc < 2) {
     printf("usage: munchy.exe <command>\n");
     for (int i = 0; i < sizeof(cmds) / sizeof(cmds[0]); i++) {
