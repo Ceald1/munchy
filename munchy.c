@@ -96,9 +96,9 @@ int cmd_lsass(int argc, char *argv[]) {
   //    return 1;
   //  }
 
-  UINT8 *bootKey = ExtractBootKey();
+  UINT8 *bootKey = ExtractSysKey();
   ImpersonateSystem();
-  ExtractSystemKey(bootKey);
+  ExtractPEKKey(bootKey);
 
   if (lsassPID != NULL) {
     if (clone->count > 0) {

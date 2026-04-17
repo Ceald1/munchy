@@ -275,5 +275,5 @@ typedef struct {
 
 HANDLE Find();
 NTSTATUS Clone(HANDLE pid);
-UINT8 *ExtractBootKey();
-UINT8 *ExtractSystemKey(UINT8 *bootkey);
+UINT8 *ExtractSysKey();
+UINT8 *ExtractPEKKey(UINT8 *bootkey);
