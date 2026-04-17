@@ -1,3 +1,6 @@
 [submodule "include/argtable3"]
 	path = include/argtable3
 	url = https://github.com/argtable/argtable3
+[submodule "include/tiny-AES-c"]
+	path = include/tiny-AES-c
+	url = https://github.com/kokke/tiny-AES-c.git

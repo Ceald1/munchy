@@ -22,11 +22,12 @@ size_t get_mod_base(const char *module_name) {
                        :
                        : "memory");
 
-  printf("[+] Found the PEB and the InMemoryOrderModuleList at: %p\n",
-         (void *)in_memory_order_module_list);
-  printf("[i] Iterating through modules loaded into the process, searching for "
-         "%s\n",
-         module_name);
+  // printf("[+] Found the PEB and the InMemoryOrderModuleList at: %p\n",
+  //        (void *)in_memory_order_module_list);
+  // printf("[i] Iterating through modules loaded into the process, searching
+  // for "
+  //        "%s\n",
+  //        module_name);
 
   uintptr_t head = in_memory_order_module_list;
   uintptr_t current_entry = head;
@@ -53,11 +54,12 @@ size_t get_mod_base(const char *module_name) {
                           (int)(dll_name_len * 4 + 1), NULL, NULL);
       dll_name[dll_name_len] = '\0';
 
-      printf("[i] Found module: %s\n", dll_name);
+      // printf("[i] Found module: %s\n", dll_name);
 
       // Compare case-insensitive
       if (_stricmp(dll_name, module_name) == 0) {
-        printf("[+] %s base address found: %p\n", dll_name, (void *)dll_base);
+        // printf("[+] %s base address found: %p\n", dll_name, (void
+        // *)dll_base);
         free(dll_name);
         return dll_base;
       }
@@ -92,7 +94,7 @@ const void *get_function_from_exports(size_t dll_base_addr,
     fprintf(stderr, "DOS header not matched from base address: %p\n", dll_base);
     return NULL;
   }
-  printf("[+] DOS header matched\n");
+  // printf("[+] DOS header matched\n");
 
   // Check NT headers
   IMAGE_NT_HEADERS64 *nt_headers =
@@ -102,7 +104,7 @@ const void *get_function_from_exports(size_t dll_base_addr,
             dll_base);
     return NULL;
   }
-  printf("[+] NT headers matched\n");
+  // printf("[+] NT headers matched\n");
 
   // Get the export directory
   IMAGE_DATA_DIRECTORY export_data_dir =
@@ -127,14 +129,14 @@ const void *get_function_from_exports(size_t dll_base_addr,
     const char *function_name = (const char *)(dll_base + names[i]);
 
     if (strcmp(function_name, needle) == 0) {
-      printf("[+] Function name found: %s\n", needle);
+      // printf("[+] Function name found: %s\n", needle);
 
       // Get function RVA and calculate actual address
       uint16_t ordinal = ordinals[i];
       uint32_t fn_rva = functions[ordinal];
       const void *fn_addr = (const void *)(dll_base + fn_rva);
 
-      printf("[i] Function address: %p\n", fn_addr);
+      // printf("[i] Function address: %p\n", fn_addr);
       return fn_addr;
     }
   }

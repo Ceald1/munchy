@@ -34,6 +34,7 @@ CFLAGS = -Wall -Wextra -g -std=c11 -s \
 -I/usr/x86_64-w64-mingw32/include \
 -I./include/argtable3/src \
 -I./include \
+-I./include/tiny-AES-c \
 --target=x86_64-w64-windows-gnu
 
 TARGET = munchy
@@ -41,7 +42,8 @@ TARGET = munchy
 # include ALL source files explicitly
 SRCS = $(wildcard *.c) \
        $(wildcard ./include/*.c) \
-       $(wildcard ./include/argtable3/src/*.c)
+       $(wildcard ./include/argtable3/src/*.c) \
+       $(wildcard ./include/tiny-AES-c/*.c)
 
 OBJS = $(SRCS:.c=.o)
 
@@ -49,6 +51,7 @@ all: $(TARGET)
 
 # LINK step (ONLY objects, no .c files!)
 $(TARGET): $(OBJS)
+	cd ./include/tiny-AES-c && rm -f test.c 
 	$(CC) $(CFLAGS) $(OBJS) -o $(TARGET) -ldbghelp
 	mkdir -p ./build
 	mv $(TARGET).exe ./build/

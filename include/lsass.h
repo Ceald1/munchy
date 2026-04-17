@@ -1,4 +1,5 @@
 #include "info.h"
+
 #include <windows.h>
 
 typedef NTSTATUS(WINAPI *NtReadVirtualMemory_t)(
@@ -16,11 +17,6 @@ typedef struct _PS_ATTRIBUTE {
   PSIZE_T ReturnLength;
 } PS_ATTRIBUTE, *PPS_ATTRIBUTE;
 
-// typedef struct _UNICODE_STRING {
-//   USHORT Length;
-//   USHORT MaximumLength;
-//   PWSTR Buffer;
-// } UNICODE_STRING, *PUNICODE_STRING;
 //
 typedef struct _OBJECT_ATTRIBUTES {
   ULONG Length;
@@ -30,11 +26,11 @@ typedef struct _OBJECT_ATTRIBUTES {
   PVOID SecurityDescriptor;
   PVOID SecurityQualityOfService;
 } OBJECT_ATTRIBUTES, *POBJECT_ATTRIBUTES;
-//
+
 // typedef struct _CLIENT_ID {
-//  HANDLE UniqueProcess;
-//  HANDLE UniqueThread;
-//} CLIENT_ID, *PCLIENT_ID;
+//   HANDLE UniqueProcess;
+//   HANDLE UniqueThread;
+// } CLIENT_ID, *PCLIENT_ID;
 
 typedef struct _PS_ATTRIBUTE_LIST {
   SIZE_T TotalLength;
@@ -180,5 +176,104 @@ typedef struct {
   0x00000004 // don't update synchronization objects
 #endif
 
+typedef NTSTATUS(WINAPI *NtOpenKey_t)(_Out_ PHANDLE KeyHandle,
+                                      _In_ ACCESS_MASK DesiredAccess,
+                                      _In_ POBJECT_ATTRIBUTES ObjectAttributes);
+
+typedef enum _KEY_INFORMATION_CLASS {
+  KeyBasicInformation,          // KEY_BASIC_INFORMATION
+  KeyNodeInformation,           // KEY_NODE_INFORMATION
+  KeyFullInformation,           // KEY_FULL_INFORMATION
+  KeyNameInformation,           // KEY_NAME_INFORMATION
+  KeyCachedInformation,         // KEY_CACHED_INFORMATION
+  KeyFlagsInformation,          // KEY_FLAGS_INFORMATION
+  KeyVirtualizationInformation, // KEY_VIRTUALIZATION_INFORMATION
+  KeyHandleTagsInformation,     // KEY_HANDLE_TAGS_INFORMATION
+  KeyTrustInformation,          // KEY_TRUST_INFORMATION
+  KeyLayerInformation,          // KEY_LAYER_INFORMATION
+  MaxKeyInfoClass
+} KEY_INFORMATION_CLASS;
+
+typedef VOID(WINAPI *RtlInitUnicodeString_t)(PUNICODE_STRING, PWCHAR);
+typedef NTSTATUS(WINAPI *NtQueryKey_t)(
+    _In_ HANDLE KeyHandle, _In_ KEY_INFORMATION_CLASS KeyInformationClass,
+    _Out_writes_bytes_to_opt_(Length, *ResultLength) PVOID KeyInformation,
+    _In_ ULONG Length, _Out_ PULONG ResultLength);
+
+typedef struct _KEY_FULL_INFORMATION {
+  LARGE_INTEGER LastWriteTime;
+  ULONG TitleIndex;
+  ULONG ClassOffset;
+  ULONG ClassLength;
+  ULONG SubKeys;
+  ULONG MaxNameLen;
+  ULONG MaxClassLen;
+  ULONG Values;
+  ULONG MaxValueNameLen;
+  ULONG MaxValueDataLen;
+  WCHAR Class[1];
+} KEY_FULL_INFORMATION;
+typedef const UNICODE_STRING *PCUNICODE_STRING;
+typedef enum _KEY_VALUE_INFORMATION_CLASS {
+  KeyValueBasicInformation,          // KEY_VALUE_BASIC_INFORMATION
+  KeyValueFullInformation,           // KEY_VALUE_FULL_INFORMATION
+  KeyValuePartialInformation,        // KEY_VALUE_PARTIAL_INFORMATION
+  KeyValueFullInformationAlign64,    // KEY_VALUE_FULL_INFORMATION_ALIGN64
+  KeyValuePartialInformationAlign64, // KEY_VALUE_PARTIAL_INFORMATION_ALIGN64
+  KeyValueLayerInformation,          // KEY_VALUE_LAYER_INFORMATION
+  MaxKeyValueInfoClass
+} KEY_VALUE_INFORMATION_CLASS;
+
+typedef NTSTATUS(WINAPI *NtQueryValueKey_t)(
+    _In_ HANDLE KeyHandle, _In_ PCUNICODE_STRING ValueName,
+    _In_ KEY_VALUE_INFORMATION_CLASS KeyValueInformationClass,
+    _Out_writes_bytes_to_opt_(Length, *ResultLength) PVOID KeyValueInformation,
+    _In_ ULONG Length, _Out_ PULONG ResultLength);
+
+// custom
+typedef struct {
+  UINT8 IV[16];
+  UINT8 AesKey[32];
+  UINT8 DesKey[24];
+  int AesLen;
+  int DesLen;
+  BOOL Valid;
+} LsaKeys;
+
+typedef struct {
+  char *User;
+  char *Domain;
+  char *NTHash;
+  char *LMHash;
+  char *SHAHash;
+} Credential;
+
+typedef struct {
+  char *User;
+  char *Domain;
+  char *Password;
+} WDigestCredential;
+
+typedef struct {
+  UINT32 Revision;
+  UINT32 Length;
+  UINT32 ChecksumLen;
+  UINT32 DataLen;
+  BYTE Salt[16];
+  BYTE Data[32];
+} sam_key_data_aes;
+
+typedef struct {
+  UINT32 Revision;
+  UINT32 Length;
+  BYTE Salt[16];
+  BYTE Key[16];
+  BYTE Checksum[16];
+  UINT64 _;
+
+} sam_key_data;
+
 HANDLE Find();
 NTSTATUS Clone(HANDLE pid);
+UINT8 *ExtractBootKey();
+UINT8 *ExtractSystemKey(UINT8 *bootkey);

