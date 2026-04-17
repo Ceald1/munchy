@@ -366,11 +366,17 @@ UINT8 *ExtractPEKKey(UINT8 *bootkey) {
     printf("NtQueryValueKey failed: 0x%X\n", err);
     return NULL;
   }
+  KEY_VALUE_PARTIAL_INFORMATION *kvpi = (KEY_VALUE_PARTIAL_INFORMATION *)buf;
+  BYTE *valueData = kvpi->Data;
+  ULONG valueDataLen = kvpi->DataLength;
   sam_key_data_aes samAESData;
-  memcpy(&samAESData, buf, sizeof(samAESData));
+  domain_account_f account_f;
+  domain_account_f_unmarshal(&account_f, valueData, valueDataLen);
+  memcpy(&samAESData, account_f.Data, sizeof(samAESData));
   BYTE *PEKKeyIV = samAESData.Salt;
   BYTE *encSysKey = malloc(samAESData.DataLen);
   memcpy(encSysKey, samAESData.Data, samAESData.DataLen);
+  printf("revision: %u\n", account_f.Revision);
   struct AES_ctx ctx;
 
   uint8_t *aeskey = (uint8_t *)bootkey;
@@ -386,7 +392,7 @@ UINT8 *ExtractPEKKey(UINT8 *bootkey) {
 
   PEKKey = (UINT8 *)plaintext;
   char hexStr[sizeof(plaintext) * 2 + 1];
-  bytes_to_hex(PEKKey, sizeof(plaintext), hexStr);
+  bytes_to_hex(PEKKey, 16, hexStr);
   printf("PEK key: %s\n", hexStr);
 
   return PEKKey;

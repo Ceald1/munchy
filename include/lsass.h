@@ -1,4 +1,8 @@
 #include "info.h"
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include <windows.h>
 
@@ -229,6 +233,108 @@ typedef NTSTATUS(WINAPI *NtQueryValueKey_t)(
     _In_ KEY_VALUE_INFORMATION_CLASS KeyValueInformationClass,
     _Out_writes_bytes_to_opt_(Length, *ResultLength) PVOID KeyValueInformation,
     _In_ ULONG Length, _Out_ PULONG ResultLength);
+
+typedef struct _KEY_VALUE_FULL_INFORMATION {
+  ULONG TitleIndex;
+  ULONG Type;
+  ULONG DataOffset;
+  ULONG DataLength;
+  ULONG NameLength;
+  _Field_size_bytes_(NameLength) WCHAR Name[1];
+  // ...
+  // UCHAR Data[1];
+} KEY_VALUE_FULL_INFORMATION, *PKEY_VALUE_FULL_INFORMATION;
+
+typedef struct {
+  uint16_t Revision;
+  uint64_t CreationTime;
+  uint64_t DomainModifiedAccount;
+  uint64_t MaxPasswordAge;
+  uint64_t MinPasswordAge;
+  uint64_t ForceLogoff;
+  uint64_t LockoutDuration;
+  uint64_t LockoutObservationWindow;
+  uint64_t ModifiedCountAtLastPromotion;
+  uint32_t NextRid;
+  uint32_t PasswordProperties;
+  uint16_t MinPasswordLength;
+  uint16_t PasswordHistoryLength;
+  uint16_t LockoutThreshold;
+  uint32_t ServerState;
+  uint32_t ServerRole;
+  uint32_t UasCompatibilityRequired;
+  uint8_t *Data;
+  size_t DataLen;
+} domain_account_f;
+
+static inline uint16_t read_le16(const uint8_t *p) {
+  return (uint16_t)(p[0] | (p[1] << 8));
+}
+
+static inline uint32_t read_le32(const uint8_t *p) {
+  return (uint32_t)(p[0] | (p[1] << 8) | (p[2] << 16) | (p[3] << 24));
+}
+
+static inline uint64_t read_le64(const uint8_t *p) {
+  return (uint64_t)p[0] | ((uint64_t)p[1] << 8) | ((uint64_t)p[2] << 16) |
+         ((uint64_t)p[3] << 24) | ((uint64_t)p[4] << 32) |
+         ((uint64_t)p[5] << 40) | ((uint64_t)p[6] << 48) |
+         ((uint64_t)p[7] << 56);
+}
+
+int domain_account_f_unmarshal(domain_account_f *self, const uint8_t *data,
+                               size_t data_len) {
+  if (data_len < 104) {
+    fprintf(stderr, "Not enough data to unmarshal a DOMAIN_ACCOUNT_F\n");
+    return -1;
+  }
+
+  self->Revision = read_le16(data + 0);
+  self->CreationTime = read_le64(data + 8);
+  self->DomainModifiedAccount = read_le64(data + 16);
+  self->MaxPasswordAge = read_le64(data + 24);
+  self->MinPasswordAge = read_le64(data + 32);
+  self->ForceLogoff = read_le64(data + 40);
+  self->LockoutDuration = read_le64(data + 48);
+  self->LockoutObservationWindow = read_le64(data + 56);
+  self->ModifiedCountAtLastPromotion = read_le64(data + 64);
+  self->NextRid = read_le32(data + 72);
+  self->PasswordProperties = read_le32(data + 76);
+  self->MinPasswordLength = read_le16(data + 80);
+  self->PasswordHistoryLength = read_le16(data + 82);
+  self->LockoutThreshold = read_le16(data + 84);
+  self->ServerState = read_le32(data + 88);
+  self->ServerRole = read_le32(data + 92);
+  self->UasCompatibilityRequired = read_le32(data + 96);
+
+  self->Data = NULL;
+  self->DataLen = 0;
+
+  if (data_len > 104) {
+    self->DataLen = data_len - 104;
+    self->Data = malloc(self->DataLen);
+    if (!self->Data) {
+      fprintf(stderr, "Failed to allocate memory for Data\n");
+      return -1;
+    }
+    memcpy(self->Data, data + 104, self->DataLen);
+  }
+
+  return 0;
+}
+
+void domain_account_f_free(domain_account_f *self) {
+  free(self->Data);
+  self->Data = NULL;
+  self->DataLen = 0;
+}
+
+typedef struct _KEY_VALUE_PARTIAL_INFORMATION {
+  ULONG TitleIndex;
+  ULONG Type;
+  ULONG DataLength;
+  _Field_size_bytes_(DataLength) UCHAR Data[1];
+} KEY_VALUE_PARTIAL_INFORMATION, *PKEY_VALUE_PARTIAL_INFORMATION;
 
 // custom
 typedef struct {
