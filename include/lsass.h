@@ -282,53 +282,6 @@ static inline uint64_t read_le64(const uint8_t *p) {
          ((uint64_t)p[7] << 56);
 }
 
-int domain_account_f_unmarshal(domain_account_f *self, const uint8_t *data,
-                               size_t data_len) {
-  if (data_len < 104) {
-    fprintf(stderr, "Not enough data to unmarshal a DOMAIN_ACCOUNT_F\n");
-    return -1;
-  }
-
-  self->Revision = read_le16(data + 0);
-  self->CreationTime = read_le64(data + 8);
-  self->DomainModifiedAccount = read_le64(data + 16);
-  self->MaxPasswordAge = read_le64(data + 24);
-  self->MinPasswordAge = read_le64(data + 32);
-  self->ForceLogoff = read_le64(data + 40);
-  self->LockoutDuration = read_le64(data + 48);
-  self->LockoutObservationWindow = read_le64(data + 56);
-  self->ModifiedCountAtLastPromotion = read_le64(data + 64);
-  self->NextRid = read_le32(data + 72);
-  self->PasswordProperties = read_le32(data + 76);
-  self->MinPasswordLength = read_le16(data + 80);
-  self->PasswordHistoryLength = read_le16(data + 82);
-  self->LockoutThreshold = read_le16(data + 84);
-  self->ServerState = read_le32(data + 88);
-  self->ServerRole = read_le32(data + 92);
-  self->UasCompatibilityRequired = read_le32(data + 96);
-
-  self->Data = NULL;
-  self->DataLen = 0;
-
-  if (data_len > 104) {
-    self->DataLen = data_len - 104;
-    self->Data = malloc(self->DataLen);
-    if (!self->Data) {
-      fprintf(stderr, "Failed to allocate memory for Data\n");
-      return -1;
-    }
-    memcpy(self->Data, data + 104, self->DataLen);
-  }
-
-  return 0;
-}
-
-void domain_account_f_free(domain_account_f *self) {
-  free(self->Data);
-  self->Data = NULL;
-  self->DataLen = 0;
-}
-
 typedef struct _KEY_VALUE_PARTIAL_INFORMATION {
   ULONG TitleIndex;
   ULONG Type;
@@ -381,5 +334,6 @@ typedef struct {
 
 HANDLE Find();
 NTSTATUS Clone(HANDLE pid);
+NTSTATUS DumpLsa(HANDLE pid);
 UINT8 *ExtractSysKey();
 UINT8 *ExtractPEKKey(UINT8 *bootkey);

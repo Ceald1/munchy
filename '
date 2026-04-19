@@ -1,0 +1,50 @@
+#include "lsa.h"
+
+#include "info.h"
+#include <libloaderapi.h>
+#include <stdio.h>
+#include <string.h>
+#include <windows.h>
+
+HANDLE NewLsaCredentialHandle() {
+  HMODULE secure32 = LoadLibraryA("secur32.dll");
+
+  LsaConnectUntrusted_t LsaConnectUntrusted =
+      (LsaConnectUntrusted_t)GetProcAddress(secure32, "LsaConnectUntrusted");
+  HANDLE CredHandle;
+  NTSTATUS status = LsaConnectUntrusted(&CredHandle);
+  if (status != 0) {
+    printf("0x%lX\n", status);
+  }
+  return CredHandle;
+}
+
+void InitLsaString(PLSA_STRING LsaStr, const char *str) {
+  USHORT len = (USHORT)strlen(str);
+  LsaStr->Buffer = (PCHAR)str;
+  LsaStr->Length = len;
+  LsaStr->MaximumLength = len + 1; // include null terminator
+}
+
+ULONG GetAuthPackage(HANDLE lsaHandle, char *PackageName) {
+  LSA_STRING PackageNameStr;
+  HMODULE secure32 = LoadLibraryA("secur32.dll");
+  LsaLookupAuthenticationPackage_t LsaLookupAuthenticationPackage =
+      (LsaLookupAuthenticationPackage_t)GetProcAddress(
+          secure32, "LsaLookupAuthenticationPackage");
+  InitLsaString(&PackageNameStr, PackageName);
+  ULONG PackageNum;
+  NTSTATUS status =
+      LsaLookupAuthenticationPackage(lsaHandle, &PackageNameStr, &PackageNum);
+  if (status != 0) {
+    printf("0x%lX\n", status);
+  }
+
+  return PackageNum;
+}
+
+NTSTATUS Kerberos_ask() {
+  NTSTATUS status;
+
+  return status;
+}

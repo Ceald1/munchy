@@ -519,14 +519,32 @@ typedef enum _SYSTEM_INFORMATION_CLASS {
   MaxSystemInfoClass
 } SYSTEM_INFORMATION_CLASS;
 
-#ifndef _UNICODE_STRING_DEFINED
-#define _UNICODE_STRING_DEFINED
+#ifndef _UNICODE_STRING
+#define _UNICODE_STRING
+
+/**
+ * The UNICODE_STRING structure defines a counted string used for Unicode
+ * strings.
+ *
+ * \sa
+ * https://learn.microsoft.com/en-us/windows/win32/api/ntdef/ns-ntdef-_unicode_string
+ */
 typedef struct _UNICODE_STRING {
   USHORT Length;
   USHORT MaximumLength;
   _Field_size_bytes_part_opt_(MaximumLength, Length) PWCH Buffer;
 } UNICODE_STRING, *PUNICODE_STRING;
+
 #endif
+
+// #ifndef _UNICODE_STRING_DEFINED
+// #define _UNICODE_STRING_DEFINED
+// typedef struct _UNICODE_STRING {
+//   USHORT Length;
+//   USHORT MaximumLength;
+//   _Field_size_bytes_part_opt_(MaximumLength, Length) PWCH Buffer;
+// } UNICODE_STRING, *PUNICODE_STRING;
+// #endif
 
 typedef LONG KPRIORITY, *PKPRIORITY;
 

