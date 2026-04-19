@@ -162,6 +162,10 @@ NTSTATUS Kerberos_ask(PCWCHAR targetName, char *filename,
                       LPCWSTR EncryptionType, LPCWSTR CacheOption,
                       void *credHandle);
 
+NTSTATUS
+PreAuth(char *user, char *passwd, char *domain, char *spn,
+        char *filename); // get a credential handle for passing to Kerberos_ask
+
 #if (_WIN32_WINNT >= 0x0501)
 #define KERB_USE_DEFAULT_TICKET_FLAGS 0x0
 
@@ -291,6 +295,60 @@ typedef struct {
 #define KERB_ETYPE_AES256_CTS_HMAC_SHA1_96 18
 #define KERB_ETYPE_AES128_CTS_HMAC_SHA1_96 17
 #define KERB_ETYPE_DEFAULT 0x0
+#define SECPKG_CRED_OUTBOUND 2
+
+typedef enum _KERB_LOGON_SUBMIT_TYPE {
+  KerbInteractiveLogon = 2,
+  KerbSmartCardLogon = 6,
+  KerbWorkstationUnlockLogon = 7,
+  KerbSmartCardUnlockLogon = 8,
+  KerbProxyLogon = 9,
+  KerbTicketLogon = 10,
+  KerbTicketUnlockLogon = 11,
+  KerbS4ULogon = 12,
+  KerbCertificateLogon = 13,
+  KerbCertificateS4ULogon = 14,
+  KerbCertificateUnlockLogon = 15,
+  KerbNoElevationLogon = 83,
+  KerbLuidLogon = 84
+} KERB_LOGON_SUBMIT_TYPE,
+    *PKERB_LOGON_SUBMIT_TYPE;
+
+typedef struct _KERB_INTERACTIVE_LOGON {
+  KERB_LOGON_SUBMIT_TYPE MessageType;
+  UNICODE_STRING LogonDomainName;
+  UNICODE_STRING UserName;
+  UNICODE_STRING Password;
+} KERB_INTERACTIVE_LOGON, *PKERB_INTERACTIVE_LOGON;
+
+typedef enum _SECURITY_LOGON_TYPE {
+  UndefinedLogonType = 0,  // This is used to specify an undefied logon type
+  Interactive = 2,         // Interactively logged on (locally or remotely)
+  Network,                 // Accessing system via network
+  Batch,                   // Started via a batch queue
+  Service,                 // Service started by service controller
+  Proxy,                   // Proxy logon
+  Unlock,                  // Unlock workstation
+  NetworkCleartext,        // Network logon with cleartext credentials
+  NewCredentials,          // Clone caller, new default credentials
+  RemoteInteractive,       // Remote, yet interactive. Terminal server
+  CachedInteractive,       // Try cached credentials without hitting the net.
+  CachedRemoteInteractive, // Same as RemoteInteractive, this is used internally
+                           // for auditing purpose
+  CachedUnlock             // Cached Unlock workstation
+} SECURITY_LOGON_TYPE,
+    *PSECURITY_LOGON_TYPE;
+
+typedef NTSTATUS(WINAPI *LsaLogonUser_t)(
+    _In_ HANDLE LsaHandle, _In_ PLSA_STRING OriginName,
+    _In_ SECURITY_LOGON_TYPE LogonType, _In_ ULONG AuthenticationPackage,
+    _In_reads_bytes_(AuthenticationInformationLength)
+        PVOID AuthenticationInformation,
+    _In_ ULONG AuthenticationInformationLength,
+    _In_opt_ PTOKEN_GROUPS LocalGroups, _In_ PTOKEN_SOURCE SourceContext,
+    _Out_ PVOID *ProfileBuffer, _Out_ PULONG ProfileBufferLength,
+    _Inout_ PLUID LogonId, _Out_ PHANDLE Token, _Out_ PQUOTA_LIMITS Quotas,
+    _Out_ PNTSTATUS SubStatus);
 
 typedef struct {
   const LPCWSTR name;

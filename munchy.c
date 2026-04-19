@@ -121,12 +121,14 @@ int cmd_lsa(int argc, char *argv[]) {
   struct arg_str *spn;
   struct arg_str *user;
   struct arg_str *passwd;
+  struct arg_str *domain;
   struct arg_str *outfile;
   void *argtable[] = {
       help = arg_lit0(NULL, "help", "show help"),
       spn = arg_str1(NULL, "spn", "<value>", "required spn/target service"),
       passwd = arg_str0(NULL, "passwd", "<value>", "optional password"),
       user = arg_str0(NULL, "user", "<value>", "optional username"),
+      domain = arg_str0(NULL, "domain", "<value>", "optional domain"),
       outfile = arg_str1(NULL, "outfile", "<value>",
                          "output file for ticket (required)"),
       end = arg_end(20),
@@ -154,6 +156,18 @@ int cmd_lsa(int argc, char *argv[]) {
     arg_freetable(argtable, narg);
     return 1;
   }
+  PCredHandle credH = NULL;
+  if (user->count > 0 && passwd->count > 0 && domain->count > 0) {
+    EnablePrivilege("debug");
+    ImpersonateSystem();
+    // PBYTE ticketOut;
+    // ULONG ticketLen = 0;
+    NTSTATUS status = PreAuth(user->sval[0], passwd->sval[0], domain->sval[0],
+                              spn->sval[0], outfile->sval[0]);
+
+    // printf("ticket length: %llu\n", sizeof(ticketOut));
+    return 0;
+  }
   if (spn->count == 0) {
     goto help_goto;
   }
@@ -164,7 +178,7 @@ int cmd_lsa(int argc, char *argv[]) {
   MultiByteToWideChar(CP_UTF8, 0, spn->sval[0], -1, spn_w, spn_len);
 
   NTSTATUS status =
-      Kerberos_ask(spn_w, outfile->sval[0], L"default", L"default", NULL);
+      Kerberos_ask(spn_w, outfile->sval[0], L"default", L"default", credH);
   if (status != 0) {
     printf("status: 0x%lX\n", status);
   }

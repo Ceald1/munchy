@@ -152,3 +152,125 @@ Kerberos_ask(PCWCHAR targetName, char *filename, LPCWSTR EncryptionType,
 
   return status;
 }
+
+NTSTATUS PreAuth(char *user, char *passwd, char *domain, char *spn,
+                 char *filename) {
+  HANDLE hLsa;
+  OssBuf buf = {0, NULL};
+  HMODULE secure32 = LoadLibraryA("secur32.dll");
+  LsaLogonUser_t LsaLogonUser =
+      (LsaLogonUser_t)GetProcAddress(secure32, "LsaLogonUser");
+  LsaCallAuthenticationPackage_t LsaCallAuthenticationPackage =
+      (LsaCallAuthenticationPackage_t)GetProcAddress(
+          secure32, "LsaCallAuthenticationPackage");
+  NTSTATUS status;
+  hLsa = NewLsaCredentialHandle();
+  LONG authpackage;
+  LSA_STRING originName;
+  authpackage = GetAuthPackage(hLsa, "Kerberos");
+  ULONG userLen = strlen(user);
+  ULONG domainLen = strlen(domain);
+  ULONG passwdLen = strlen(passwd);
+  WCHAR wUser[256], wDomain[256], wPasswd[256];
+  MultiByteToWideChar(CP_ACP, 0, user, -1, wUser, 256);
+  MultiByteToWideChar(CP_ACP, 0, domain, -1, wDomain, 256);
+  MultiByteToWideChar(CP_ACP, 0, passwd, -1, wPasswd, 256);
+  ULONG authInfoSize = sizeof(KERB_INTERACTIVE_LOGON) + (wcslen(wUser) * 2) +
+                       (wcslen(wDomain) * 2) + (wcslen(wPasswd) * 2);
+  PKERB_INTERACTIVE_LOGON authInfo =
+      (PKERB_INTERACTIVE_LOGON)calloc(1, authInfoSize);
+  authInfo->MessageType = KerbInteractiveLogon;
+  PBYTE ptr = (PBYTE)(authInfo + 1);
+
+  authInfo->UserName.Buffer = (PWSTR)ptr;
+  authInfo->UserName.Length = wcslen(wUser) * 2;
+  authInfo->UserName.MaximumLength = authInfo->UserName.Length;
+  memcpy(ptr, wUser, authInfo->UserName.Length);
+  ptr += authInfo->UserName.Length;
+
+  authInfo->LogonDomainName.Buffer = (PWSTR)ptr;
+  authInfo->LogonDomainName.Length = wcslen(wDomain) * 2;
+  authInfo->LogonDomainName.MaximumLength = authInfo->LogonDomainName.Length;
+  memcpy(ptr, wDomain, authInfo->LogonDomainName.Length);
+  ptr += authInfo->LogonDomainName.Length;
+
+  authInfo->Password.Buffer = (PWSTR)ptr;
+  authInfo->Password.Length = wcslen(wPasswd) * 2;
+  authInfo->Password.MaximumLength = authInfo->Password.Length;
+  memcpy(ptr, wPasswd, authInfo->Password.Length);
+  originName.Buffer = "munchy";
+  originName.Length = 6;
+  originName.MaximumLength = 7;
+
+  TOKEN_SOURCE sourceContext;
+  memcpy(sourceContext.SourceName, "munchy  ", 8);
+  AllocateLocallyUniqueId(&sourceContext.SourceIdentifier);
+  HANDLE hToken;
+  LUID logonId;
+  LUID *pLogonId = &logonId;
+  QUOTA_LIMITS quotas;
+  NTSTATUS subStatus;
+  PVOID profileBuffer;
+  ULONG profileLen;
+  status = LsaLogonUser(hLsa, &originName,
+                        Interactive, // logon type
+                        authpackage, authInfo, authInfoSize, NULL,
+                        &sourceContext, &profileBuffer, &profileLen,
+                        &logonId, // <-- this is the LUID of the new session
+                        &hToken, &quotas, &subStatus);
+  free(authInfo);
+  if (status != 0) {
+    return status;
+  }
+
+  // Now request the ticket using the new session's LUID
+  ULONG spnLen = strlen(spn);
+  ULONG reqSize = sizeof(KERB_RETRIEVE_TKT_REQUEST) + (spnLen * sizeof(WCHAR));
+  PKERB_RETRIEVE_TKT_REQUEST req =
+      (PKERB_RETRIEVE_TKT_REQUEST)calloc(1, reqSize);
+
+  req->MessageType = KerbRetrieveEncodedTicketMessage;
+  req->LogonId = logonId; // <-- target the new session
+  req->CacheOptions =
+      KERB_RETRIEVE_TICKET_DONT_USE_CACHE | KERB_RETRIEVE_TICKET_AS_KERB_CRED;
+  req->EncryptionType = 0;
+
+  PWCHAR spnBuf = (PWCHAR)(req + 1);
+  MultiByteToWideChar(CP_ACP, 0, spn, -1, spnBuf, spnLen + 1);
+  req->TargetName.Buffer = spnBuf;
+  req->TargetName.Length = spnLen * sizeof(WCHAR);
+  req->TargetName.MaximumLength = req->TargetName.Length + sizeof(WCHAR);
+
+  PKERB_RETRIEVE_TKT_RESPONSE resp = NULL;
+  ULONG respLen;
+  NTSTATUS protocolStatus;
+  status =
+      LsaCallAuthenticationPackage(hLsa, authpackage, req, reqSize,
+                                   (PVOID *)&resp, &respLen, &protocolStatus);
+  printf("status: 0x%lX\n", protocolStatus);
+  if (status == 0 && protocolStatus == 0) {
+
+    buf.length = resp->Ticket.EncodedTicketSize;
+    buf.value = resp->Ticket.EncodedTicket;
+    //*ticketLen = resp->Ticket.EncodedTicketSize;
+    printf("EncodedTicketSize: %lu\n",
+           resp ? resp->Ticket.EncodedTicketSize : 0);
+    HANDLE hfile;
+    DWORD bytesWritten;
+    hfile = CreateFile(filename, GENERIC_ALL, 0, NULL, CREATE_ALWAYS,
+                       FILE_ATTRIBUTE_NORMAL, NULL);
+    if (hfile == INVALID_HANDLE_VALUE) {
+      return GetLastError();
+    }
+    BOOL result = WriteFile(hfile, buf.value, buf.length, &bytesWritten, NULL);
+    if (!result) {
+      return GetLastError();
+    }
+    CloseHandle(hfile);
+
+    //*ticketOut = (PBYTE)malloc(*ticketLen);
+    // memcpy(*ticketOut, resp->Ticket.EncodedTicket, *ticketLen);
+  }
+
+  return status;
+}
