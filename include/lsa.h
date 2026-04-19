@@ -162,6 +162,7 @@ NTSTATUS Kerberos_ask(PCWCHAR targetName, char *filename,
                       LPCWSTR EncryptionType, LPCWSTR CacheOption,
                       void *credHandle);
 
+NTSTATUS Ptt(PVOID data, DWORD dataSize);
 NTSTATUS
 PreAuth(char *user, char *passwd, char *domain, char *spn,
         char *filename); // get a credential handle for passing to Kerberos_ask
@@ -349,6 +350,21 @@ typedef NTSTATUS(WINAPI *LsaLogonUser_t)(
     _Out_ PVOID *ProfileBuffer, _Out_ PULONG ProfileBufferLength,
     _Inout_ PLUID LogonId, _Out_ PHANDLE Token, _Out_ PQUOTA_LIMITS Quotas,
     _Out_ PNTSTATUS SubStatus);
+
+typedef struct KERB_CRYPTO_KEY32 {
+  LONG KeyType;
+  ULONG Length;
+  ULONG Offset;
+} KERB_CRYPTO_KEY32, *PKERB_CRYPTO_KEY32;
+
+typedef struct _KERB_SUBMIT_TKT_REQUEST {
+  KERB_PROTOCOL_MESSAGE_TYPE MessageType;
+  LUID LogonId;
+  ULONG Flags;
+  KERB_CRYPTO_KEY32 Key; // key to decrypt KERB_CRED
+  ULONG KerbCredSize;
+  ULONG KerbCredOffset;
+} KERB_SUBMIT_TKT_REQUEST, *PKERB_SUBMIT_TKT_REQUEST;
 
 typedef struct {
   const LPCWSTR name;

