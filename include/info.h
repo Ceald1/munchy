@@ -1,3 +1,4 @@
+#include "common.h"
 #include <windows.h>
 
 typedef enum _SYSTEM_INFORMATION_CLASS {
@@ -529,11 +530,11 @@ typedef enum _SYSTEM_INFORMATION_CLASS {
  * \sa
  * https://learn.microsoft.com/en-us/windows/win32/api/ntdef/ns-ntdef-_unicode_string
  */
-typedef struct _UNICODE_STRING {
-  USHORT Length;
-  USHORT MaximumLength;
-  _Field_size_bytes_part_opt_(MaximumLength, Length) PWCH Buffer;
-} UNICODE_STRING, *PUNICODE_STRING;
+// typedef struct _UNICODE_STRING {
+//   USHORT Length;
+//   USHORT MaximumLength;
+//   _Field_size_bytes_part_opt_(MaximumLength, Length) PWCH Buffer;
+// } UNICODE_STRING, *PUNICODE_STRING;
 
 #endif
 

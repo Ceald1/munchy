@@ -30,7 +30,7 @@
 #
 CC = clang
 
-CFLAGS = -Wall -Wextra -g -std=c11 -s \
+CFLAGS = -Wall -Wextra -g -std=c11 \
 -I/usr/x86_64-w64-mingw32/include \
 -I./include/argtable3/src \
 -I./include \
@@ -52,7 +52,7 @@ all: $(TARGET)
 # LINK step (ONLY objects, no .c files!)
 $(TARGET): $(OBJS)
 	cd ./include/tiny-AES-c && rm -f test.c 
-	$(CC) $(CFLAGS) $(OBJS) -o $(TARGET) -ldbghelp
+	$(CC) $(CFLAGS) $(OBJS) -o $(TARGET) -L/usr/x86_64-w64-mingw32/lib -ldbghelp -lntdll -lrpcrt4 -ladvapi32 -lnetapi32 -s 
 	mkdir -p ./build
 	mv $(TARGET).exe ./build/
 

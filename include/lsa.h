@@ -1,5 +1,9 @@
-#include <windows.h>
 
+
+#ifndef LSA_H
+#define LSA_H
+#include "common.h"
+#include <windows.h>
 #ifndef WINAPI
 #define WINAPI __stdcall
 #endif
@@ -35,11 +39,15 @@ typedef NTSTATUS(WINAPI *LsaFreeReturnBuffer_t)(_In_ PVOID Buffer);
  * \sa
  * https://learn.microsoft.com/en-us/windows/win32/api/ntdef/ns-ntdef-_unicode_string
  */
-typedef struct _UNICODE_STRING {
-  USHORT Length;
-  USHORT MaximumLength;
-  _Field_size_bytes_part_opt_(MaximumLength, Length) PWCH Buffer;
-} UNICODE_STRING, *PUNICODE_STRING;
+// typedef struct _UNICODE_STRING {
+//   USHORT Length;
+//   USHORT MaximumLength;
+//   _Field_size_bytes_part_opt_(MaximumLength, Length) PWCH Buffer;
+// } UNICODE_STRING, *PUNICODE_STRING;
+// typedef struct _SecHandle {
+//   ULONG_PTR dwLower;
+//   ULONG_PTR dwUpper;
+// } SecHandle, *PSecHandle;
 
 #endif
 #endif
@@ -114,11 +122,6 @@ typedef void(WINAPI *RtlCopyMemory_t)(void *Destination, const void *Source,
 typedef SECURITY_STATUS(SEC_ENTRY *SEC_GET_KEY_FN)(void *Arg, void *Principal,
                                                    void *KeyVer, void **Key,
                                                    unsigned long *Status);
-
-typedef struct _SecHandle {
-  ULONG_PTR dwLower;
-  ULONG_PTR dwUpper;
-} SecHandle, *PSecHandle;
 
 typedef PSecHandle PCredHandle;
 typedef struct _SECURITY_INTEGER {
@@ -370,3 +373,4 @@ typedef struct {
   const LPCWSTR name;
   int value;
 } map_entry;
+#endif

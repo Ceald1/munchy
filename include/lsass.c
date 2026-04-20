@@ -8,20 +8,12 @@
 #include <stdlib.h>
 // #include <wdm.h>
 #include "gate.h"
-#include "token.h"
+// #include "token.h"
 #include <aes.h>
 #include <sddl.h>
 #include <tlhelp32.h>
 #include <windows.h>
 #include <winnt.h>
-
-#define InitializeObjectAttributes(p)                                          \
-  (p)->Length = sizeof(OBJECT_ATTRIBUTES);                                     \
-  (p)->RootDirectory = NULL;                                                   \
-  (p)->Attributes = 0;                                                         \
-  (p)->ObjectName = NULL;                                                      \
-  (p)->SecurityDescriptor = NULL;                                              \
-  (p)->SecurityQualityOfService = NULL;
 
 int domain_account_f_unmarshal(domain_account_f *self, const uint8_t *data,
                                size_t data_len) {

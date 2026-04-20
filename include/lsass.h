@@ -1,9 +1,11 @@
+#ifndef LSASS_H
+#define LSASS_H
+#include "common.h"
 #include "info.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
 #include <windows.h>
 
 typedef NTSTATUS(WINAPI *NtReadVirtualMemory_t)(
@@ -21,7 +23,8 @@ typedef struct _PS_ATTRIBUTE {
   PSIZE_T ReturnLength;
 } PS_ATTRIBUTE, *PPS_ATTRIBUTE;
 
-//
+#ifndef _OBJECT_ATTRIBUTES_DEFINED
+#define _OBJECT_ATTRIBUTES_DEFINED
 typedef struct _OBJECT_ATTRIBUTES {
   ULONG Length;
   HANDLE RootDirectory;
@@ -30,7 +33,20 @@ typedef struct _OBJECT_ATTRIBUTES {
   PVOID SecurityDescriptor;
   PVOID SecurityQualityOfService;
 } OBJECT_ATTRIBUTES, *POBJECT_ATTRIBUTES;
+#endif
 
+//
+// #ifndef _UNICODE_STRING
+// #define _UNICODE_STRING
+// typedef struct _OBJECT_ATTRIBUTES {
+//  ULONG Length;
+//  HANDLE RootDirectory;
+//  PUNICODE_STRING ObjectName;
+//  ULONG Attributes;
+//  PVOID SecurityDescriptor;
+//  PVOID SecurityQualityOfService;
+//} OBJECT_ATTRIBUTES, *POBJECT_ATTRIBUTES;
+// #endif
 // typedef struct _CLIENT_ID {
 //   HANDLE UniqueProcess;
 //   HANDLE UniqueThread;
@@ -41,10 +57,28 @@ typedef struct _PS_ATTRIBUTE_LIST {
   PS_ATTRIBUTE Attributes[1];
 } PS_ATTRIBUTE_LIST, *PPS_ATTRIBUTE_LIST;
 
+// typedef const UNICODE_STRING *PCUNICODE_STRING;
+//  typedef struct _OBJECT_ATTRIBUTES {
+//    ULONG Length;
+//    HANDLE RootDirectory;
+//    PCUNICODE_STRING ObjectName;
+//    ULONG Attributes;
+//    PSECURITY_DESCRIPTOR SecurityDescriptor;
+//    PSECURITY_QUALITY_OF_SERVICE SecurityQualityOfService;
+//  } OBJECT_ATTRIBUTES, *POBJECT_ATTRIBUTES;
+
 typedef NTSTATUS(WINAPI *NtOpenProcess_t)(PHANDLE ProcessHandle,
                                           ACCESS_MASK DesiredAccess,
                                           POBJECT_ATTRIBUTES ObjectAttributes,
                                           PCLIENT_ID ClientId);
+
+#define InitializeObjectAttributes(p)                                          \
+  (p)->Length = sizeof(OBJECT_ATTRIBUTES);                                     \
+  (p)->RootDirectory = NULL;                                                   \
+  (p)->Attributes = 0;                                                         \
+  (p)->ObjectName = NULL;                                                      \
+  (p)->SecurityDescriptor = NULL;                                              \
+  (p)->SecurityQualityOfService = NULL;
 
 /// shit for cloning a process
 typedef struct _SECTION_IMAGE_INFORMATION {
@@ -337,3 +371,4 @@ NTSTATUS Clone(HANDLE pid);
 NTSTATUS DumpLsa(HANDLE pid);
 UINT8 *ExtractSysKey();
 UINT8 *ExtractPEKKey(UINT8 *bootkey);
+#endif
