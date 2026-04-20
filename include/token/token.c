@@ -1,7 +1,7 @@
 
 // #include "gate.h"
-#include "gate.h"
-#include "lsass.h"
+#include "gate/gate.h"
+#include "lsass/lsass.h"
 #include <stdbool.h>
 #include <windows.h>
 

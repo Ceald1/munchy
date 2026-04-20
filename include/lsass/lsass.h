@@ -1,7 +1,7 @@
 #ifndef LSASS_H
 #define LSASS_H
-#include "common.h"
-#include "info.h"
+#include "common/common.h"
+#include "info/info.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>

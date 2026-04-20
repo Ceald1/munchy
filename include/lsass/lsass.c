@@ -1,5 +1,5 @@
 #include "lsass.h"
-#include "gate.h"
+#include "gate/gate.h"
 #include <dbghelp.h>
 #include <errhandlingapi.h>
 #include <processthreadsapi.h>
@@ -7,7 +7,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 // #include <wdm.h>
-#include "gate.h"
 // #include "token.h"
 #include <aes.h>
 #include <sddl.h>

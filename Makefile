@@ -41,9 +41,9 @@ TARGET = munchy
 
 # include ALL source files explicitly
 SRCS = $(wildcard *.c) \
-       $(wildcard ./include/*.c) \
-       $(wildcard ./include/argtable3/src/*.c) \
-       $(wildcard ./include/tiny-AES-c/*.c)
+       $(wildcard ./include/*/*.c) \
+       $(wildcard ./include/argtable3/src/*.c)
+       #$(wildcard ./include/tiny-AES-c/*.c)
 
 OBJS = $(SRCS:.c=.o)
 

@@ -3,10 +3,10 @@
 // #include "./include/token.c"
 
 // #include "./include/lsass.c"
-#include "lsa.h"
-#include "lsass.h"
-#include "token.h"
-#include <dcsync.h>
+#include "dc_sync/dcsync.h"
+#include "lsa/lsa.h"
+#include "lsass/lsass.h"
+#include "token/token.h"
 
 #include <argtable3.h>
 #include <wincrypt.h>
@@ -223,12 +223,7 @@ int cmd_dcsync(int argc, char *argv[]) {
       help = arg_lit0(NULL, "help", "show help"),
       end = arg_end(20),
   };
-  PPOLICY_DNS_DOMAIN_INFO domain;
-  domain = GetCurrentDomain();
-  LPWSTR dc = getDC(domain->DnsDomainName.Buffer);
-  wprintf(L"found domain: %s\n", domain->DnsDomainName.Buffer);
-  wprintf(L"found DC: %s\n", dc);
-  dcsync();
+  printf("running dcsync..\n");
 
   return 0;
 }

@@ -2,7 +2,7 @@
 
 #ifndef LSA_H
 #define LSA_H
-#include "common.h"
+#include "common/common.h"
 #include <windows.h>
 #ifndef WINAPI
 #define WINAPI __stdcall

@@ -1,4 +1,4 @@
-#include "common.h"
+#include "common/common.h"
 #include <windows.h>
 
 typedef enum _SYSTEM_INFORMATION_CLASS {

@@ -1,8 +1,8 @@
 #include "lsa.h"
-#include "gate.h"
+#include "gate/gate.h"
 
-#include "base64.h"
-#include "info.h"
+#include "base64/base64.h"
+#include "info/info.h"
 #include <errhandlingapi.h>
 #include <libloaderapi.h>
 #include <stdio.h>
