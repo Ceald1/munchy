@@ -100,7 +100,7 @@ all: build/$(TARGET).exe
 
 build/%.o: %.c
 	@mkdir -p $(dir $@)
-	cd include/tiny-AES-c && rm test*
+	cd include/tiny-AES-c && rm -f test.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 build/$(TARGET).exe: $(OBJS)
