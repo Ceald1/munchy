@@ -1,7 +1,10 @@
-
+#pragma once
+#define SECURITY_WIN32
 #ifndef COMMON_H
 #define COMMON_H
 #include <windows.h>
+
+#include <sspi.h>
 /**
  * The UNICODE_STRING structure defines a counted string used for Unicode
  * strings.
@@ -28,9 +31,9 @@ typedef struct _OBJECT_ATTRIBUTES {
 } OBJECT_ATTRIBUTES, *POBJECT_ATTRIBUTES;
 #endif
 
-typedef struct _SecHandle {
-  ULONG_PTR dwLower;
-  ULONG_PTR dwUpper;
-} SecHandle, *PSecHandle;
+// typedef struct _SecHandle {
+//   ULONG_PTR dwLower;
+//   ULONG_PTR dwUpper;
+// } SecHandle, *PSecHandle;
 typedef OBJECT_ATTRIBUTES LSA_OBJECT_ATTRIBUTES, *PLSA_OBJECT_ATTRIBUTES;
 #endif

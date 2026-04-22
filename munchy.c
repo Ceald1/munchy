@@ -223,7 +223,10 @@ int cmd_dcsync(int argc, char *argv[]) {
       help = arg_lit0(NULL, "help", "show help"),
       end = arg_end(20),
   };
-  printf("running dcsync..\n");
+  // EnablePrivilege("debug");
+  // ImpersonateSystem();
+  //  printf("running dcsync..\n");
+  DCSync();
 
   return 0;
 }

@@ -119,15 +119,16 @@ typedef NTSTATUS(WINAPI *LsaLookupAuthenticationPackage_t)(
 typedef void(WINAPI *RtlCopyMemory_t)(void *Destination, const void *Source,
                                       size_t Length);
 
-typedef SECURITY_STATUS(SEC_ENTRY *SEC_GET_KEY_FN)(void *Arg, void *Principal,
-                                                   void *KeyVer, void **Key,
-                                                   unsigned long *Status);
-
+// typedef SECURITY_STATUS(SEC_ENTRY *SEC_GET_KEY_FN)(void *Arg, void
+// *Principal,
+//                                                    void *KeyVer, void **Key,
+//                                                    unsigned long *Status);
+//
 typedef PSecHandle PCredHandle;
-typedef struct _SECURITY_INTEGER {
-  ULONG LowPart;
-  LONG HighPart;
-} SECURITY_INTEGER, *PSECURITY_INTEGER;
+// typedef struct _SECURITY_INTEGER {
+//   ULONG LowPart;
+//   LONG HighPart;
+// } SECURITY_INTEGER, *PSECURITY_INTEGER;
 
 typedef SECURITY_INTEGER TimeStamp, *PTimeStamp;
 
@@ -136,17 +137,17 @@ typedef SECURITY_STATUS(WINAPI *AcquireCredentialsHandleA_t)(
     void *pvLogonId, void *pAuthData, SEC_GET_KEY_FN pGetKeyFn,
     void *pvGetKeyArgument, PCredHandle phCredential, PTimeStamp ptsExpiry);
 
-typedef struct _SecBuffer {
-  ULONG cbBuffer;
-  ULONG BufferType;
-  PVOID pvBuffer;
-} SecBuffer, *PSecBuffer;
-
-typedef struct _SecBufferDesc {
-  ULONG ulVersion;
-  ULONG cBuffers;
-  PSecBuffer pBuffers;
-} SecBufferDesc, *PSecBufferDesc;
+// typedef struct _SecBuffer {
+//   ULONG cbBuffer;
+//   ULONG BufferType;
+//   PVOID pvBuffer;
+// } SecBuffer, *PSecBuffer;
+//
+// typedef struct _SecBufferDesc {
+//   ULONG ulVersion;
+//   ULONG cBuffers;
+//   PSecBuffer pBuffers;
+// } SecBufferDesc, *PSecBufferDesc;
 typedef CHAR SEC_CHAR;
 typedef PSecHandle PCtxtHandle;
 

@@ -1,67 +1,112 @@
-## 1. Variables: Define compiler, flags, and targets
 #CC = clang
-#CFLAGS = -Wall -Wextra -g -std=c11 -s -I/usr/x86_64-w64-mingw32/include -I./include/argtable3/src -I./include --target=x86_64-w64-windows-gnu
-#TARGET = $(target)
 #
-## 2. Source and Object Files: Automatically find .c files and name .o files
-#SRCS = $(wildcard *.c)
+#CFLAGS = -Wall -Wextra -g -std=c11 \
+#-I./include/argtable3/src \
+#-I./include \
+#-I./include/tiny-AES-c \
+#--target=x86_64-pc-windows-msvc \
+#--sysroot=/opt/xwin
+#
+#
+#TARGET = munchy
+#
+## include ALL source files explicitly
+#SRCS = $(wildcard *.c) \
+#       $(wildcard ./include/*/*.c) \
+#       $(wildcard ./include/argtable3/src/*.c)
+#
+#
 #OBJS = $(SRCS:.c=.o)
 #
-## 3. Default Target: The first rule is run by default when you type 'make'
 #all: $(TARGET)
 #
-## 4. Link Step: Create the final executable from object files
+## LINK step (ONLY objects, no .c files!)
 #$(TARGET): $(OBJS)
-#	$(CC) $(CFLAGS) ./include/*.c ./include/argtable3/src/*.c -o $(TARGET) $(OBJS)
+#	cd ./include/tiny-AES-c && rm -f test.c 
+#	$(CC) $(CFLAGS) $(OBJS) -o $(TARGET) -L/usr/x86_64-w64-mingw32/lib -ldbghelp -lntdll -lrpcrt4 -ladvapi32 -lnetapi32 -s 
 #	mkdir -p ./build
-#	mv *.exe ./build/
+#	mv $(TARGET).exe ./build/
 #
-## 5. Compile Step: Pattern rule to build .o files from .c files
+## COMPILE step
 #%.o: %.c
 #	$(CC) $(CFLAGS) -c $< -o $@
 #
-## 6. Clean: Remove build artifacts to start fresh
 #clean:
-#	rm -f *.o *.exe *.dll
-#	rm ./build/*.exe ./build/*.dll
+#	rm -f $(OBJS)
+#	rm -f ./build/*
 #
 #.PHONY: all clean
-#
-#
-CC = clang
+
+
+CC = clang-cl
+XWIN = $(HOME)/.xwin
 
 CFLAGS = -Wall -Wextra -g -std=c11 \
--I/usr/x86_64-w64-mingw32/include \
--I./include/argtable3/src \
--I./include \
--I./include/tiny-AES-c \
---target=x86_64-w64-windows-gnu
+  --target=x86_64-pc-windows-msvc \
+  -imsvc $(XWIN)/crt/include \
+  -imsvc $(XWIN)/sdk/include/ucrt \
+  -imsvc $(XWIN)/sdk/include/um \
+  -imsvc $(XWIN)/sdk/include/shared \
+  -I./include/argtable3/src \
+  -I./include \
+  -I./include/tiny-AES-c
+
+
+LDFLAGS = \
+  -fuse-ld=lld-link \
+  -Xlinker -machine:x64 \
+  -Xlinker -libpath:$(XWIN)/crt/lib/x86_64 \
+  -Xlinker -libpath:$(XWIN)/sdk/lib/um/x86_64 \
+  -Xlinker -libpath:$(XWIN)/sdk/lib/ucrt/x86_64 \
+  -Xlinker rpcrt4.lib \
+  -Xlinker kernel32.lib \
+  -Xlinker advapi32.lib \
+  -Xlinker netapi32.lib \
+  -Xlinker secur32.lib \
+  -Xlinker uuid.lib \
+  -Xlinker oldnames.lib \
+  -Xlinker libcmt.lib \
+  -Xlinker libvcruntime.lib \
+  -Xlinker libucrt.lib \
+  -Xlinker dbghelp.lib
+
+#LDFLAGS = \
+#  -fuse-ld=lld-link \
+#  -Xlinker -machine:x64 \
+#  -Xlinker -libpath:$(XWIN)/crt/lib/x86_64 \
+#  -Xlinker -libpath:$(XWIN)/sdk/lib/um/x86_64 \
+#  -Xlinker -libpath:$(XWIN)/sdk/lib/ucrt/x86_64 \
+#  -Xlinker rpcrt4.lib \
+#  -Xlinker kernel32.lib \
+#  -Xlinker advapi32.lib \
+#  -Xlinker netapi32.lib \
+#  -Xlinker secur32.lib \
+#  -Xlinker uuid.lib \
+#  -Xlinker oldnames.lib \
+#  -Xlinker libcmt.lib \
+#  -Xlinker libvcruntime.lib \
+#  -Xlinker libucrt.lib
+
 
 TARGET = munchy
 
-# include ALL source files explicitly
 SRCS = $(wildcard *.c) \
        $(wildcard ./include/*/*.c) \
        $(wildcard ./include/argtable3/src/*.c)
-       #$(wildcard ./include/tiny-AES-c/*.c)
 
-OBJS = $(SRCS:.c=.o)
+OBJS = $(patsubst %.c,build/%.o,$(SRCS))
 
-all: $(TARGET)
+all: build/$(TARGET).exe
 
-# LINK step (ONLY objects, no .c files!)
-$(TARGET): $(OBJS)
-	cd ./include/tiny-AES-c && rm -f test.c 
-	$(CC) $(CFLAGS) $(OBJS) -o $(TARGET) -L/usr/x86_64-w64-mingw32/lib -ldbghelp -lntdll -lrpcrt4 -ladvapi32 -lnetapi32 -s 
-	mkdir -p ./build
-	mv $(TARGET).exe ./build/
-
-# COMPILE step
-%.o: %.c
+build/%.o: %.c
+	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -c $< -o $@
 
+build/$(TARGET).exe: $(OBJS)
+	@mkdir -p build
+	$(CC) --target=x86_64-pc-windows-msvc $(OBJS) $(LDFLAGS) -o $@
+
 clean:
-	rm -f $(OBJS)
-	rm -f ./build/*
+	rm -rf build
 
 .PHONY: all clean
