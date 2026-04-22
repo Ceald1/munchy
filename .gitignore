@@ -11,3 +11,5 @@ build/
 Vagrantfile
 *.rb
 target/
+.xwin-cache/
+.xwin*/

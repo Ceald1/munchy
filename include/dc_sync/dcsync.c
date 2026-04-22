@@ -3,7 +3,10 @@
 #include <stdio.h>
 #include <windows.h>
 
+#include <lmshare.h>
+
 #include <NtDsAPI.h>
+#include <lmapibuf.h>
 #include <ntsecapi.h>
 
 #include "dcsync.h"
@@ -61,15 +64,13 @@ BOOL getDC(LPCWSTR fullDomainName, DWORD altFlags, LPWSTR *fullDCName) {
       status = TRUE;
     }
 
-    // NetApiBufferFree(cInfo);
+    NetApiBufferFree(cInfo);
   } else {
     wprintf(L"DsGetDcName: %u\n", ret);
   }
 
   return status;
 }
-
-BOOL InitializeBind() {}
 
 void DCSync() {
 
