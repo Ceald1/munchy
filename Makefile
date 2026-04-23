@@ -58,17 +58,37 @@ LDFLAGS = \
   -Xlinker -libpath:$(XWIN)/crt/lib/x86_64 \
   -Xlinker -libpath:$(XWIN)/sdk/lib/um/x86_64 \
   -Xlinker -libpath:$(XWIN)/sdk/lib/ucrt/x86_64 \
-  -Xlinker rpcrt4.lib \
-  -Xlinker kernel32.lib \
-  -Xlinker advapi32.lib \
-  -Xlinker netapi32.lib \
-  -Xlinker secur32.lib \
-  -Xlinker uuid.lib \
-  -Xlinker oldnames.lib \
-  -Xlinker libcmt.lib \
-  -Xlinker libvcruntime.lib \
-  -Xlinker libucrt.lib \
-  -Xlinker dbghelp.lib
+  -Xlinker /DEFAULTLIB:rpcrt4.lib \
+  -Xlinker /DEFAULTLIB:kernel32.lib \
+  -Xlinker /DEFAULTLIB:advapi32.lib \
+  -Xlinker /DEFAULTLIB:netapi32.lib \
+  -Xlinker /DEFAULTLIB:secur32.lib \
+  -Xlinker /DEFAULTLIB:uuid.lib \
+  -Xlinker /DEFAULTLIB:oldnames.lib \
+  -Xlinker /DEFAULTLIB:libcmt.lib \
+  -Xlinker /DEFAULTLIB:libvcruntime.lib \
+  -Xlinker /DEFAULTLIB:libucrt.lib \
+  -Xlinker /DEFAULTLIB:dbghelp.lib
+
+
+#LDFLAGS = \
+#  -fuse-ld=lld-link \
+#  -Xlinker -machine:x64 \
+#  -Xlinker -libpath:$(XWIN)/crt/lib/x86_64 \
+#  -Xlinker -libpath:$(XWIN)/sdk/lib/um/x86_64 \
+#  -Xlinker -libpath:$(XWIN)/sdk/lib/ucrt/x86_64 \
+#  -Xlinker -libpath:$(XWIN)/sdk/include/shared \
+#  -Xlinker rpcrt4.lib \
+#  -Xlinker kernel32.lib \
+#  -Xlinker advapi32.lib \
+#  -Xlinker netapi32.lib \
+#  -Xlinker secur32.lib \
+#  -Xlinker uuid.lib \
+#  -Xlinker oldnames.lib \
+#  -Xlinker libcmt.lib \
+#  -Xlinker libvcruntime.lib \
+#  -Xlinker libucrt.lib \
+#  -Xlinker dbghelp.lib
 
 #LDFLAGS = \
 #  -fuse-ld=lld-link \
@@ -92,6 +112,7 @@ TARGET = munchy
 
 SRCS = $(wildcard *.c) \
        $(wildcard ./include/*/*.c) \
+       $(wildcard ./include/drsr/*.cpp) \
        $(wildcard ./include/argtable3/src/*.c)
 
 OBJS = $(patsubst %.c,build/%.o,$(SRCS))

@@ -286,7 +286,7 @@ NTSTATUS DumpLsa(HANDLE pid) {
   return status;
 }
 
-const int MAXREGVAL = 1024;
+// const int MAXREGVAL = 1024;
 
 UINT8 *ExtractSysKey() {
   static UINT8 result[16];

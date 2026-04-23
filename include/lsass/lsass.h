@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <windows.h>
-
+#define MAXREGVAL 1024
 typedef NTSTATUS(WINAPI *NtReadVirtualMemory_t)(
     _In_ HANDLE ProcessHandle, _In_opt_ PVOID BaseAddress,
     _Out_writes_bytes_to_(NumberOfBytesToRead, *NumberOfBytesRead) PVOID Buffer,
