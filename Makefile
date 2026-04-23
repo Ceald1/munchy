@@ -68,7 +68,9 @@ LDFLAGS = \
   -Xlinker /DEFAULTLIB:libcmt.lib \
   -Xlinker /DEFAULTLIB:libvcruntime.lib \
   -Xlinker /DEFAULTLIB:libucrt.lib \
-  -Xlinker /DEFAULTLIB:dbghelp.lib
+  -Xlinker /DEFAULTLIB:dbghelp.lib \
+  -Xlinker /DEFAULTLIB:wldap32.lib \
+  -Xlinker /DEFAULTLIB:ole32.lib
 
 
 #LDFLAGS = \

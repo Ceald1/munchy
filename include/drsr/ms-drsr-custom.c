@@ -9,19 +9,17 @@
  *   IDL_DRSGetNCChanges: 160
  */
 
+#include <stdio.h>
 #define _WIN32_WINNT 0x0601
 
 #include <windows.h>
 #include "ms-drsr.h"
 #include <rpc.h>
+#include <rpcndr.h>
 
 // BOF compatibility
-//#define NdrClientCall2 RPCRT4$NdrClientCall2
-//
-//DECLSPEC_IMPORT CLIENT_CALL_RETURN RPC_VAR_ENTRY RPCRT4$NdrClientCall2(
-//    PMIDL_STUB_DESC pStubDescriptor,
-//    PFORMAT_STRING pFormat,
-//    ...);
+
+
 
 extern void* __RPC_USER MIDL_user_allocate(size_t);
 extern void __RPC_USER MIDL_user_free(void*);
@@ -69,19 +67,21 @@ ULONG IDL_DRSBind(
     DRS_EXTENSIONS **ppextServer,
     DRS_HANDLE *phDrs)
 {
-		HMODULE rpc = LoadLibraryA("Rpcrt4.dll");
-	PFN_NdrClientCall2_t NdrClientCall2 = (PFN_NdrClientCall2_t)GetProcAddress(rpc, "NdrClientCall2");
-    return (ULONG)NdrClientCall2(
+
+    printf("call from inside of IDL_DRSBind\n");
+  	ULONG result = NdrClientCall2(
         (PMIDL_STUB_DESC)&drsuapi_StubDesc,
         (PFORMAT_STRING)&ms2Ddrsr__MIDL_ProcFormatString.Format[0],
         rpc_handle, puuidClientDsa, pextClient, ppextServer, phDrs
     ).Simple;
+
+  return result;
 }
 
 ULONG IDL_DRSUnbind(DRS_HANDLE *phDrs)
 {
-	HMODULE rpc = LoadLibraryA("Rpcrt4.dll");
-	PFN_NdrClientCall2_t NdrClientCall2 = (PFN_NdrClientCall2_t)GetProcAddress(rpc, "NdrClientCall2");
+//	HMODULE rpc = LoadLibraryA("Rpcrt4.dll");
+//	PFN_NdrClientCall2_t NdrClientCall2 = (PFN_NdrClientCall2_t)GetProcAddress(rpc, "NdrClientCall2");
     return (ULONG)NdrClientCall2(
         (PMIDL_STUB_DESC)&drsuapi_StubDesc,
         (PFORMAT_STRING)&ms2Ddrsr__MIDL_ProcFormatString.Format[60],
@@ -94,8 +94,8 @@ ULONG IDL_DRSReplicaSync(
     DWORD dwVersion,
     DRS_MSG_REPSYNC *pmsgSync)
 {
-	HMODULE rpc = LoadLibraryA("Rpcrt4.dll");
-	PFN_NdrClientCall2_t NdrClientCall2 = (PFN_NdrClientCall2_t)GetProcAddress(rpc, "NdrClientCall2");
+//	HMODULE rpc = LoadLibraryA("Rpcrt4.dll");
+//	PFN_NdrClientCall2_t NdrClientCall2 = (PFN_NdrClientCall2_t)GetProcAddress(rpc, "NdrClientCall2");
     return (ULONG)NdrClientCall2(
         (PMIDL_STUB_DESC)&drsuapi_StubDesc,
         (PFORMAT_STRING)&ms2Ddrsr__MIDL_ProcFormatString.Format[104],
@@ -110,8 +110,8 @@ ULONG IDL_DRSGetNCChanges(
     DWORD *pdwOutVersion,
     DRS_MSG_GETCHGREPLY *pmsgOut)
 {
-	HMODULE rpc = LoadLibraryA("Rpcrt4.dll");
-	PFN_NdrClientCall2_t NdrClientCall2 = (PFN_NdrClientCall2_t)GetProcAddress(rpc, "NdrClientCall2");
+ // HMODULE rpc = LoadLibraryA("Rpcrt4.dll");
+ // PFN_NdrClientCall2_t NdrClientCall2 = (PFN_NdrClientCall2_t)GetProcAddress(rpc, "NdrClientCall2");
     return (ULONG)NdrClientCall2(
         (PMIDL_STUB_DESC)&drsuapi_StubDesc,
         (PFORMAT_STRING)&ms2Ddrsr__MIDL_ProcFormatString.Format[160],

@@ -25,6 +25,8 @@
 #include "rpc.h"
 #include "rpcndr.h"
 
+#include <ntdsapi.h>
+
 #ifndef __RPCNDR_H_VERSION__
 #error this stub requires an updated version of <rpcndr.h>
 #endif /* __RPCNDR_H_VERSION__ */
@@ -227,65 +229,65 @@ typedef /*  */ struct __MIDL_drsuapi_0024 {
   UCHAR rgTimes[84];
 } REPLTIMES;
 
-typedef /*  */ struct __MIDL_drsuapi_0025 {
-  DWORD status;
-  /* [unique][string] */ WCHAR *pDomain;
-  /* [unique][string] */ WCHAR *pName;
-} DS_NAME_RESULT_ITEMW;
+// typedef /*  */ struct __MIDL_drsuapi_0025 {
+//   DWORD status;
+//   /* [unique][string] */ WCHAR *pDomain;
+//   /* [unique][string] */ WCHAR *pName;
+// } DS_NAME_RESULT_ITEMW;
+//
+// typedef struct __MIDL_drsuapi_0025 *PDS_NAME_RESULT_ITEMW;
+//
+// typedef /*  */ struct __MIDL_drsuapi_0026 {
+//   DWORD cItems;
+//   /* [size_is] */ PDS_NAME_RESULT_ITEMW rItems;
+// } DS_NAME_RESULTW;
+//
+// typedef struct __MIDL_drsuapi_0026 *PDS_NAME_RESULTW;
+//
+// typedef /*  */ struct __MIDL_drsuapi_0027 {
+//   /* [unique][string] */ WCHAR *NetbiosName;
+//   /* [unique][string] */ WCHAR *DnsHostName;
+//   /* [unique][string] */ WCHAR *SiteName;
+//   /* [unique][string] */ WCHAR *ComputerObjectName;
+//   /* [unique][string] */ WCHAR *ServerObjectName;
+//   BOOL fIsPdc;
+//   BOOL fDsEnabled;
+// } DS_DOMAIN_CONTROLLER_INFO_1W;
 
-typedef struct __MIDL_drsuapi_0025 *PDS_NAME_RESULT_ITEMW;
+// typedef /*  */ struct __MIDL_drsuapi_0028 {
+//   /* [unique][string] */ WCHAR *NetbiosName;
+//   /* [unique][string] */ WCHAR *DnsHostName;
+//   /* [unique][string] */ WCHAR *SiteName;
+//   /* [unique][string] */ WCHAR *SiteObjectName;
+//   /* [unique][string] */ WCHAR *ComputerObjectName;
+//   /* [unique][string] */ WCHAR *ServerObjectName;
+//   /* [unique][string] */ WCHAR *NtdsDsaObjectName;
+//   BOOL fIsPdc;
+//   BOOL fDsEnabled;
+//   BOOL fIsGc;
+//   GUID SiteObjectGuid;
+//   GUID ComputerObjectGuid;
+//   GUID ServerObjectGuid;
+//   GUID NtdsDsaObjectGuid;
+// } DS_DOMAIN_CONTROLLER_INFO_2W;
 
-typedef /*  */ struct __MIDL_drsuapi_0026 {
-  DWORD cItems;
-  /* [size_is] */ PDS_NAME_RESULT_ITEMW rItems;
-} DS_NAME_RESULTW;
-
-typedef struct __MIDL_drsuapi_0026 *PDS_NAME_RESULTW;
-
-typedef /*  */ struct __MIDL_drsuapi_0027 {
-  /* [unique][string] */ WCHAR *NetbiosName;
-  /* [unique][string] */ WCHAR *DnsHostName;
-  /* [unique][string] */ WCHAR *SiteName;
-  /* [unique][string] */ WCHAR *ComputerObjectName;
-  /* [unique][string] */ WCHAR *ServerObjectName;
-  BOOL fIsPdc;
-  BOOL fDsEnabled;
-} DS_DOMAIN_CONTROLLER_INFO_1W;
-
-typedef /*  */ struct __MIDL_drsuapi_0028 {
-  /* [unique][string] */ WCHAR *NetbiosName;
-  /* [unique][string] */ WCHAR *DnsHostName;
-  /* [unique][string] */ WCHAR *SiteName;
-  /* [unique][string] */ WCHAR *SiteObjectName;
-  /* [unique][string] */ WCHAR *ComputerObjectName;
-  /* [unique][string] */ WCHAR *ServerObjectName;
-  /* [unique][string] */ WCHAR *NtdsDsaObjectName;
-  BOOL fIsPdc;
-  BOOL fDsEnabled;
-  BOOL fIsGc;
-  GUID SiteObjectGuid;
-  GUID ComputerObjectGuid;
-  GUID ServerObjectGuid;
-  GUID NtdsDsaObjectGuid;
-} DS_DOMAIN_CONTROLLER_INFO_2W;
-
-typedef /*  */ struct __MIDL_drsuapi_0029 {
-  /* [unique][string] */ WCHAR *NetbiosName;
-  /* [unique][string] */ WCHAR *DnsHostName;
-  /* [unique][string] */ WCHAR *SiteName;
-  /* [unique][string] */ WCHAR *SiteObjectName;
-  /* [unique][string] */ WCHAR *ComputerObjectName;
-  /* [unique][string] */ WCHAR *ServerObjectName;
-  /* [unique][string] */ WCHAR *NtdsDsaObjectName;
-  BOOL fIsPdc;
-  BOOL fDsEnabled;
-  BOOL fIsGc;
-  BOOL fIsRodc;
-  GUID SiteObjectGuid;
-  GUID ComputerObjectGuid;
-  GUID ServerObjectGuid;
-  GUID NtdsDsaObjectGuid;
-} DS_DOMAIN_CONTROLLER_INFO_3W;
+// typedef /*  */ struct __MIDL_drsuapi_0029 {
+//   /* [unique][string] */ WCHAR *NetbiosName;
+//   /* [unique][string] */ WCHAR *DnsHostName;
+//   /* [unique][string] */ WCHAR *SiteName;
+//   /* [unique][string] */ WCHAR *SiteObjectName;
+//   /* [unique][string] */ WCHAR *ComputerObjectName;
+//   /* [unique][string] */ WCHAR *ServerObjectName;
+//   /* [unique][string] */ WCHAR *NtdsDsaObjectName;
+//   BOOL fIsPdc;
+//   BOOL fDsEnabled;
+//   BOOL fIsGc;
+//   BOOL fIsRodc;
+//   GUID SiteObjectGuid;
+//   GUID ComputerObjectGuid;
+//   GUID ServerObjectGuid;
+//   GUID NtdsDsaObjectGuid;
+// } DS_DOMAIN_CONTROLLER_INFO_3W;
 
 typedef /*  */ struct __MIDL_drsuapi_0030 {
   DWORD IPAddress;
@@ -400,184 +402,184 @@ typedef /* [switch_type] */ union __MIDL_drsuapi_0040 {
   /* [case()] */ SYSERR_DRS_WIRE_V1 SysErr;
 } DIRERR_DRS_WIRE_V1;
 
-typedef /*  */ struct __MIDL_drsuapi_0041 {
-  /* [string] */ LPWSTR pszNamingContext;
-  /* [string] */ LPWSTR pszSourceDsaDN;
-  /* [string] */ LPWSTR pszSourceDsaAddress;
-  /* [string] */ LPWSTR pszAsyncIntersiteTransportDN;
-  DWORD dwReplicaFlags;
-  DWORD dwReserved;
-  UUID uuidNamingContextObjGuid;
-  UUID uuidSourceDsaObjGuid;
-  UUID uuidSourceDsaInvocationID;
-  UUID uuidAsyncIntersiteTransportObjGuid;
-  USN usnLastObjChangeSynced;
-  USN usnAttributeFilter;
-  FILETIME ftimeLastSyncSuccess;
-  FILETIME ftimeLastSyncAttempt;
-  DWORD dwLastSyncResult;
-  DWORD cNumConsecutiveSyncFailures;
-} DS_REPL_NEIGHBORW;
+// typedef /*  */ struct __MIDL_drsuapi_0041 {
+//   /* [string] */ LPWSTR pszNamingContext;
+//   /* [string] */ LPWSTR pszSourceDsaDN;
+//   /* [string] */ LPWSTR pszSourceDsaAddress;
+//   /* [string] */ LPWSTR pszAsyncIntersiteTransportDN;
+//   DWORD dwReplicaFlags;
+//   DWORD dwReserved;
+//   UUID uuidNamingContextObjGuid;
+//   UUID uuidSourceDsaObjGuid;
+//   UUID uuidSourceDsaInvocationID;
+//   UUID uuidAsyncIntersiteTransportObjGuid;
+//   USN usnLastObjChangeSynced;
+//   USN usnAttributeFilter;
+//   FILETIME ftimeLastSyncSuccess;
+//   FILETIME ftimeLastSyncAttempt;
+//   DWORD dwLastSyncResult;
+//   DWORD cNumConsecutiveSyncFailures;
+// } DS_REPL_NEIGHBORW;
+//
+// typedef /*  */ struct __MIDL_drsuapi_0042 {
+//   DWORD cNumNeighbors;
+//   DWORD dwReserved;
+//   /* [size_is] */ DS_REPL_NEIGHBORW rgNeighbor[1];
+// } DS_REPL_NEIGHBORSW;
+//
+// typedef /*  */ struct __MIDL_drsuapi_0043 {
+//   UUID uuidSourceDsaInvocationID;
+//   USN usnAttributeFilter;
+// } DS_REPL_CURSOR;
+//
+// typedef /*  */ struct __MIDL_drsuapi_0044 {
+//   DWORD cNumCursors;
+//   DWORD dwReserved;
+//   /* [size_is] */ DS_REPL_CURSOR rgCursor[1];
+// } DS_REPL_CURSORS;
+//
+// typedef /*  */ struct __MIDL_drsuapi_0045 {
+//   /* [string] */ LPWSTR pszAttributeName;
+//   DWORD dwVersion;
+//   FILETIME ftimeLastOriginatingChange;
+//   UUID uuidLastOriginatingDsaInvocationID;
+//   USN usnOriginatingChange;
+//   USN usnLocalChange;
+// } DS_REPL_ATTR_META_DATA;
+//
+// typedef /*  */ struct __MIDL_drsuapi_0046 {
+//   /* [string] */ LPWSTR pszDsaDN;
+//   UUID uuidDsaObjGuid;
+//   FILETIME ftimeFirstFailure;
+//   DWORD cNumFailures;
+//   DWORD dwLastResult;
+// } DS_REPL_KCC_DSA_FAILUREW;
+//
+// typedef /*  */ struct __MIDL_drsuapi_0047 {
+//   DWORD cNumEntries;
+//   DWORD dwReserved;
+//   /* [size_is] */ DS_REPL_KCC_DSA_FAILUREW rgDsaFailure[1];
+// } DS_REPL_KCC_DSA_FAILURESW;
+//
+// typedef /*  */ struct __MIDL_drsuapi_0048 {
+//   DWORD cNumEntries;
+//   DWORD dwReserved;
+//   /* [size_is] */ DS_REPL_ATTR_META_DATA rgMetaData[1];
+// } DS_REPL_OBJ_META_DATA;
+//
+// typedef /*  */
+//     enum __MIDL_drsuapi_0049 {
+//       DS_REPL_OP_TYPE_SYNC = 0,
+//       DS_REPL_OP_TYPE_ADD = (DS_REPL_OP_TYPE_SYNC + 1),
+//       DS_REPL_OP_TYPE_DELETE = (DS_REPL_OP_TYPE_ADD + 1),
+//       DS_REPL_OP_TYPE_MODIFY = (DS_REPL_OP_TYPE_DELETE + 1),
+//       DS_REPL_OP_TYPE_UPDATE_REFS = (DS_REPL_OP_TYPE_MODIFY + 1)
+//     } DS_REPL_OP_TYPE;
+//
+// typedef /*  */ struct __MIDL_drsuapi_0050 {
+//   FILETIME ftimeEnqueued;
+//   ULONG ulSerialNumber;
+//   ULONG ulPriority;
+//   DS_REPL_OP_TYPE OpType;
+//   ULONG ulOptions;
+//   /* [string] */ LPWSTR pszNamingContext;
+//   /* [string] */ LPWSTR pszDsaDN;
+//   /* [string] */ LPWSTR pszDsaAddress;
+//   UUID uuidNamingContextObjGuid;
+//   UUID uuidDsaObjGuid;
+// } DS_REPL_OPW;
+//
+// typedef /*  */ struct __MIDL_drsuapi_0051 {
+//   FILETIME ftimeCurrentOpStarted;
+//   DWORD cNumPendingOps;
+//   /* [size_is] */ DS_REPL_OPW rgPendingOp[1];
+// } DS_REPL_PENDING_OPSW;
+//
+// typedef /*  */ struct __MIDL_drsuapi_0052 {
+//   /* [string] */ LPWSTR pszAttributeName;
+//   /* [string] */ LPWSTR pszObjectDn;
+//   DWORD cbData;
+//   /* [full][size_is] */ BYTE *pbData;
+//   FILETIME ftimeDeleted;
+//   FILETIME ftimeCreated;
+//   DWORD dwVersion;
+//   FILETIME ftimeLastOriginatingChange;
+//   UUID uuidLastOriginatingDsaInvocationID;
+//   USN usnOriginatingChange;
+//   USN usnLocalChange;
+// } DS_REPL_VALUE_META_DATA;
+//
+// typedef /*  */ struct __MIDL_drsuapi_0053 {
+//   DWORD cNumEntries;
+//   DWORD dwEnumerationContext;
+//   /* [size_is] */ DS_REPL_VALUE_META_DATA rgMetaData[1];
+// } DS_REPL_ATTR_VALUE_META_DATA;
+//
+// typedef /*  */ struct __MIDL_drsuapi_0054 {
+//   UUID uuidSourceDsaInvocationID;
+//   USN usnAttributeFilter;
+//   FILETIME ftimeLastSyncSuccess;
+// } DS_REPL_CURSOR_2;
 
-typedef /*  */ struct __MIDL_drsuapi_0042 {
-  DWORD cNumNeighbors;
-  DWORD dwReserved;
-  /* [size_is] */ DS_REPL_NEIGHBORW rgNeighbor[1];
-} DS_REPL_NEIGHBORSW;
-
-typedef /*  */ struct __MIDL_drsuapi_0043 {
-  UUID uuidSourceDsaInvocationID;
-  USN usnAttributeFilter;
-} DS_REPL_CURSOR;
-
-typedef /*  */ struct __MIDL_drsuapi_0044 {
-  DWORD cNumCursors;
-  DWORD dwReserved;
-  /* [size_is] */ DS_REPL_CURSOR rgCursor[1];
-} DS_REPL_CURSORS;
-
-typedef /*  */ struct __MIDL_drsuapi_0045 {
-  /* [string] */ LPWSTR pszAttributeName;
-  DWORD dwVersion;
-  FILETIME ftimeLastOriginatingChange;
-  UUID uuidLastOriginatingDsaInvocationID;
-  USN usnOriginatingChange;
-  USN usnLocalChange;
-} DS_REPL_ATTR_META_DATA;
-
-typedef /*  */ struct __MIDL_drsuapi_0046 {
-  /* [string] */ LPWSTR pszDsaDN;
-  UUID uuidDsaObjGuid;
-  FILETIME ftimeFirstFailure;
-  DWORD cNumFailures;
-  DWORD dwLastResult;
-} DS_REPL_KCC_DSA_FAILUREW;
-
-typedef /*  */ struct __MIDL_drsuapi_0047 {
-  DWORD cNumEntries;
-  DWORD dwReserved;
-  /* [size_is] */ DS_REPL_KCC_DSA_FAILUREW rgDsaFailure[1];
-} DS_REPL_KCC_DSA_FAILURESW;
-
-typedef /*  */ struct __MIDL_drsuapi_0048 {
-  DWORD cNumEntries;
-  DWORD dwReserved;
-  /* [size_is] */ DS_REPL_ATTR_META_DATA rgMetaData[1];
-} DS_REPL_OBJ_META_DATA;
-
-typedef /*  */
-    enum __MIDL_drsuapi_0049 {
-      DS_REPL_OP_TYPE_SYNC = 0,
-      DS_REPL_OP_TYPE_ADD = (DS_REPL_OP_TYPE_SYNC + 1),
-      DS_REPL_OP_TYPE_DELETE = (DS_REPL_OP_TYPE_ADD + 1),
-      DS_REPL_OP_TYPE_MODIFY = (DS_REPL_OP_TYPE_DELETE + 1),
-      DS_REPL_OP_TYPE_UPDATE_REFS = (DS_REPL_OP_TYPE_MODIFY + 1)
-    } DS_REPL_OP_TYPE;
-
-typedef /*  */ struct __MIDL_drsuapi_0050 {
-  FILETIME ftimeEnqueued;
-  ULONG ulSerialNumber;
-  ULONG ulPriority;
-  DS_REPL_OP_TYPE OpType;
-  ULONG ulOptions;
-  /* [string] */ LPWSTR pszNamingContext;
-  /* [string] */ LPWSTR pszDsaDN;
-  /* [string] */ LPWSTR pszDsaAddress;
-  UUID uuidNamingContextObjGuid;
-  UUID uuidDsaObjGuid;
-} DS_REPL_OPW;
-
-typedef /*  */ struct __MIDL_drsuapi_0051 {
-  FILETIME ftimeCurrentOpStarted;
-  DWORD cNumPendingOps;
-  /* [size_is] */ DS_REPL_OPW rgPendingOp[1];
-} DS_REPL_PENDING_OPSW;
-
-typedef /*  */ struct __MIDL_drsuapi_0052 {
-  /* [string] */ LPWSTR pszAttributeName;
-  /* [string] */ LPWSTR pszObjectDn;
-  DWORD cbData;
-  /* [full][size_is] */ BYTE *pbData;
-  FILETIME ftimeDeleted;
-  FILETIME ftimeCreated;
-  DWORD dwVersion;
-  FILETIME ftimeLastOriginatingChange;
-  UUID uuidLastOriginatingDsaInvocationID;
-  USN usnOriginatingChange;
-  USN usnLocalChange;
-} DS_REPL_VALUE_META_DATA;
-
-typedef /*  */ struct __MIDL_drsuapi_0053 {
-  DWORD cNumEntries;
-  DWORD dwEnumerationContext;
-  /* [size_is] */ DS_REPL_VALUE_META_DATA rgMetaData[1];
-} DS_REPL_ATTR_VALUE_META_DATA;
-
-typedef /*  */ struct __MIDL_drsuapi_0054 {
-  UUID uuidSourceDsaInvocationID;
-  USN usnAttributeFilter;
-  FILETIME ftimeLastSyncSuccess;
-} DS_REPL_CURSOR_2;
-
-typedef /*  */ struct __MIDL_drsuapi_0055 {
-  DWORD cNumCursors;
-  DWORD dwEnumerationContext;
-  /* [size_is] */ DS_REPL_CURSOR_2 rgCursor[1];
-} DS_REPL_CURSORS_2;
-
-typedef /*  */ struct __MIDL_drsuapi_0056 {
-  UUID uuidSourceDsaInvocationID;
-  USN usnAttributeFilter;
-  FILETIME ftimeLastSyncSuccess;
-  /* [string] */ LPWSTR pszSourceDsaDN;
-} DS_REPL_CURSOR_3W;
-
-typedef /*  */ struct __MIDL_drsuapi_0057 {
-  DWORD cNumCursors;
-  DWORD dwEnumerationContext;
-  /* [size_is] */ DS_REPL_CURSOR_3W rgCursor[1];
-} DS_REPL_CURSORS_3W;
-
-typedef /*  */ struct __MIDL_drsuapi_0058 {
-  /* [string] */ LPWSTR pszAttributeName;
-  DWORD dwVersion;
-  FILETIME ftimeLastOriginatingChange;
-  UUID uuidLastOriginatingDsaInvocationID;
-  USN usnOriginatingChange;
-  USN usnLocalChange;
-  /* [string] */ LPWSTR pszLastOriginatingDsaDN;
-} DS_REPL_ATTR_META_DATA_2;
-
-typedef /*  */ struct __MIDL_drsuapi_0059 {
-  DWORD cNumEntries;
-  DWORD dwReserved;
-  /* [size_is] */ DS_REPL_ATTR_META_DATA_2 rgMetaData[1];
-} DS_REPL_OBJ_META_DATA_2;
-
-typedef /*  */ struct __MIDL_drsuapi_0060 {
-  /* [string] */ LPWSTR pszAttributeName;
-  /* [string] */ LPWSTR pszObjectDn;
-  DWORD cbData;
-  /* [full][size_is] */ BYTE *pbData;
-  FILETIME ftimeDeleted;
-  FILETIME ftimeCreated;
-  DWORD dwVersion;
-  FILETIME ftimeLastOriginatingChange;
-  UUID uuidLastOriginatingDsaInvocationID;
-  USN usnOriginatingChange;
-  USN usnLocalChange;
-  /* [string] */ LPWSTR pszLastOriginatingDsaDN;
-} DS_REPL_VALUE_META_DATA_2;
-
-typedef /*  */ struct __MIDL_drsuapi_0061 {
-  DWORD cNumEntries;
-  DWORD dwEnumerationContext;
-  /* [size_is] */ DS_REPL_VALUE_META_DATA_2 rgMetaData[1];
-} DS_REPL_ATTR_VALUE_META_DATA_2;
+// typedef /*  */ struct __MIDL_drsuapi_0055 {
+//   DWORD cNumCursors;
+//   DWORD dwEnumerationContext;
+//   /* [size_is] */ DS_REPL_CURSOR_2 rgCursor[1];
+// } DS_REPL_CURSORS_2;
+//
+// typedef /*  */ struct __MIDL_drsuapi_0056 {
+//   UUID uuidSourceDsaInvocationID;
+//   USN usnAttributeFilter;
+//   FILETIME ftimeLastSyncSuccess;
+//   /* [string] */ LPWSTR pszSourceDsaDN;
+// } DS_REPL_CURSOR_3W;
+//
+// typedef /*  */ struct __MIDL_drsuapi_0057 {
+//   DWORD cNumCursors;
+//   DWORD dwEnumerationContext;
+//   /* [size_is] */ DS_REPL_CURSOR_3W rgCursor[1];
+// } DS_REPL_CURSORS_3W;
+//
+// typedef /*  */ struct __MIDL_drsuapi_0058 {
+//   /* [string] */ LPWSTR pszAttributeName;
+//   DWORD dwVersion;
+//   FILETIME ftimeLastOriginatingChange;
+//   UUID uuidLastOriginatingDsaInvocationID;
+//   USN usnOriginatingChange;
+//   USN usnLocalChange;
+//   /* [string] */ LPWSTR pszLastOriginatingDsaDN;
+// } DS_REPL_ATTR_META_DATA_2;
+//
+// typedef /*  */ struct __MIDL_drsuapi_0059 {
+//   DWORD cNumEntries;
+//   DWORD dwReserved;
+//   /* [size_is] */ DS_REPL_ATTR_META_DATA_2 rgMetaData[1];
+// } DS_REPL_OBJ_META_DATA_2;
+//
+// typedef /*  */ struct __MIDL_drsuapi_0060 {
+//   /* [string] */ LPWSTR pszAttributeName;
+//   /* [string] */ LPWSTR pszObjectDn;
+//   DWORD cbData;
+//   /* [full][size_is] */ BYTE *pbData;
+//   FILETIME ftimeDeleted;
+//   FILETIME ftimeCreated;
+//   DWORD dwVersion;
+//   FILETIME ftimeLastOriginatingChange;
+//   UUID uuidLastOriginatingDsaInvocationID;
+//   USN usnOriginatingChange;
+//   USN usnLocalChange;
+//   /* [string] */ LPWSTR pszLastOriginatingDsaDN;
+// } DS_REPL_VALUE_META_DATA_2;
+//
+// typedef /*  */ struct __MIDL_drsuapi_0061 {
+//   DWORD cNumEntries;
+//   DWORD dwEnumerationContext;
+//   /* [size_is] */ DS_REPL_VALUE_META_DATA_2 rgMetaData[1];
+// } DS_REPL_ATTR_VALUE_META_DATA_2;
 
 typedef /*  */ struct __MIDL_drsuapi_0062 {
   /* [range] */ DWORD cb;
-  /* [size_is] */ BYTE rgb[1];
+  /* [size_is] */ BYTE rgb[1024];
 } DRS_EXTENSIONS;
 
 typedef /*  */ struct __MIDL_drsuapi_0063 {

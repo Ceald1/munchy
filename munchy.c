@@ -219,14 +219,37 @@ int cmd_lsa(int argc, char *argv[]) {
 int cmd_dcsync(int argc, char *argv[]) {
   struct arg_end *end;
   struct arg_lit *help;
+  struct arg_str *guid;
+  struct arg_str *dn;
   void *argtable[] = {
       help = arg_lit0(NULL, "help", "show help"),
+      guid = arg_str1(NULL, "guid", "<value>", "object GUID"),
+      dn = arg_str1(NULL, "dn", "<value>", "distinguished name"),
       end = arg_end(20),
   };
+  if (arg_nullcheck(argtable) != 0) {
+    printf("out of memory\n");
+    return 1;
+  }
+  int nerrors = arg_parse(argc, argv, argtable);
+  int narg = sizeof(argtable) / sizeof(argtable[0]);
+  if (nerrors > 0) {
+    arg_print_errors(stdout, end, "dcsync");
+    printf("Try: dcsync --help\n");
+    arg_freetable(argtable, narg);
+    return 1;
+  }
+  if (help->count > 0) {
+    printf("Usage: dcsync");
+    arg_print_syntax(stdout, argtable, "\n");
+    arg_print_glossary(stdout, argtable, "  %-25s %s\n");
+    arg_freetable(argtable, narg);
+    return 0;
+  }
   // EnablePrivilege("debug");
   // ImpersonateSystem();
   //  printf("running dcsync..\n");
-  DCSync();
+  DCSync(dn->sval[0], guid->sval[0]);
 
   return 0;
 }
