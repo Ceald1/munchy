@@ -216,15 +216,34 @@ int cmd_lsa(int argc, char *argv[]) {
   arg_freetable(argtable, narg);
   return status != 0 ? -1 : 0;
 }
+
+void CharToWide(const char *str, WCHAR *buffer, int bufferSize) {
+  if (!str || !buffer || bufferSize <= 0)
+    return;
+
+  int charsWritten = MultiByteToWideChar(
+      CP_UTF8,   // source string is UTF-8 (or use CP_ACP for ANSI)
+      0,         // no special flags
+      str,       // source string
+      -1,        // null-terminated source
+      buffer,    // destination wide string buffer
+      bufferSize // size of destination buffer in WCHARs
+  );
+
+  if (charsWritten == 0) {
+    wprintf(L"Conversion failed: 0x%lx\n", GetLastError());
+    buffer[0] = L'\0';
+  }
+}
+
 int cmd_dcsync(int argc, char *argv[]) {
   struct arg_end *end;
   struct arg_lit *help;
-  struct arg_str *guid;
-  struct arg_str *dn;
+  struct arg_str *samaccountname;
   void *argtable[] = {
       help = arg_lit0(NULL, "help", "show help"),
-      guid = arg_str1(NULL, "guid", "<value>", "object GUID"),
-      dn = arg_str1(NULL, "dn", "<value>", "distinguished name"),
+      samaccountname =
+          arg_str1(NULL, "user", "<value>", "object sam Account name"),
       end = arg_end(20),
   };
   if (arg_nullcheck(argtable) != 0) {
@@ -246,10 +265,14 @@ int cmd_dcsync(int argc, char *argv[]) {
     arg_freetable(argtable, narg);
     return 0;
   }
+  const char *samaccountnameRaw = samaccountname->sval[0];
+  WCHAR wideSamAccountName[256];
+  CharToWide(samaccountnameRaw, wideSamAccountName,
+             _countof(wideSamAccountName));
   // EnablePrivilege("debug");
   // ImpersonateSystem();
   //  printf("running dcsync..\n");
-  DCSync(dn->sval[0], guid->sval[0]);
+  DCSync(wideSamAccountName);
 
   return 0;
 }

