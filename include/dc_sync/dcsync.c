@@ -979,6 +979,7 @@ void ProcessCredentials(REPLENTINFLIST *objects, const char *samAccountName,
                                                    remainingLen, decodedValue);
 
                     if (decodedLen > 0) {
+                      printf("found kerberos keys..\n");
                       if (ParseKerberosKeys(
                               decodedValue, decodedLen, samAccountName,
                               dcHostname, accountType, aes256Key, aes128Key)) {
@@ -1005,13 +1006,13 @@ void ProcessCredentials(REPLENTINFLIST *objects, const char *samAccountName,
   }
 
   printf("\n[+] Results:");
-  printf("  %s", samAccountName);
+  printf("  %s\n", samAccountName);
   if (foundNT)
-    printf("  nt:\t%s", ntHash);
+    printf("  nt:\t%s\n", ntHash);
   if (foundAES256)
-    printf("  aes256:\t%s", aes256Key);
+    printf("  aes256:\t%s\n", aes256Key);
   if (foundAES128)
-    printf("  aes128:\t%s", aes128Key);
+    printf("  aes128:\t%s\n", aes128Key);
 }
 
 // end of cred parsing stuff
