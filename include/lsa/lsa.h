@@ -4,6 +4,7 @@
 #define LSA_H
 #include "common/common.h"
 #include <windows.h>
+#include <winternl.h>
 #ifndef WINAPI
 #define WINAPI __stdcall
 #endif
@@ -104,11 +105,11 @@ typedef struct _SECURITY_LOGON_SESSION_DATA {
 typedef NTSTATUS(WINAPI *LsaGetLogonSessionData_t)(
     _In_ PLUID LogonId, _Out_ PSECURITY_LOGON_SESSION_DATA *ppLogonSessionData);
 
-typedef struct _STRING {
-  USHORT Length;
-  USHORT MaximumLength;
-  _Field_size_bytes_part_opt_(MaximumLength, Length) PCHAR Buffer;
-} STRING, *PSTRING, ANSI_STRING, *PANSI_STRING, OEM_STRING, *POEM_STRING;
+// typedef struct _STRING {
+//   USHORT Length;
+//   USHORT MaximumLength;
+//   _Field_size_bytes_part_opt_(MaximumLength, Length) PCHAR Buffer;
+// } STRING, *PSTRING, ANSI_STRING, *PANSI_STRING, OEM_STRING, *POEM_STRING;
 
 typedef STRING LSA_STRING, *PLSA_STRING;
 

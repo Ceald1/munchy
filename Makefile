@@ -56,6 +56,7 @@ LDFLAGS = \
   -fuse-ld=lld-link \
   -Xlinker -machine:x64 \
   -Xlinker -libpath:$(XWIN)/crt/lib/x86_64 \
+  -Xlinker -libpath:./lib \
   -Xlinker -libpath:$(XWIN)/sdk/lib/um/x86_64 \
   -Xlinker -libpath:$(XWIN)/sdk/lib/ucrt/x86_64 \
   -Xlinker /DEFAULTLIB:rpcrt4.lib \
@@ -70,7 +71,11 @@ LDFLAGS = \
   -Xlinker /DEFAULTLIB:libucrt.lib \
   -Xlinker /DEFAULTLIB:dbghelp.lib \
   -Xlinker /DEFAULTLIB:wldap32.lib \
-  -Xlinker /DEFAULTLIB:ole32.lib
+  -Xlinker /DEFAULTLIB:ole32.lib \
+  -Xlinker /DEFAULTLIB:msasn1.min.lib \
+  -Xlinker /DEFAULTLIB:ntdll.min.lib \
+  -Xlinker /DEFAULTLIB:cryptdll.lib \
+  -Xlinker /DEFAULTLIB:user32.lib
 
 
 #LDFLAGS = \
