@@ -159,6 +159,11 @@ typedef SECURITY_STATUS(WINAPI *InitializeSecurityContextA_t)(
     PCtxtHandle phNewContext, PSecBufferDesc pOutput,
     unsigned long *pfContextAttr, PTimeStamp ptsExpiry);
 
+typedef NTSTATUS(WINAPI *LsaEnumerateLogonSessions_t)(
+    OUT PULONG LogonSessionCount, OUT PLUID *LogonSessionList);
+typedef NTSTATUS(WINAPI *LsaGetLogonSessionData_t)(
+    _In_ PLUID LogonId, _Out_ PSECURITY_LOGON_SESSION_DATA *ppLogonSessionData);
+
 // custom
 //
 HANDLE NewLsaCredentialHandle();
@@ -166,7 +171,7 @@ ULONG GetAuthPackage(HANDLE lsaHandle, char *PackageName);
 NTSTATUS Kerberos_ask(PCWCHAR targetName, char *filename,
                       LPCWSTR EncryptionType, LPCWSTR CacheOption,
                       void *credHandle);
-
+NTSTATUS ListTickets();
 NTSTATUS Ptt(PVOID data, DWORD dataSize);
 NTSTATUS
 PreAuth(char *user, char *passwd, char *domain, char *spn,
@@ -291,6 +296,54 @@ typedef struct _KERB_RETRIEVE_TKT_REQUEST {
 typedef struct _KERB_RETRIEVE_TKT_RESPONSE {
   KERB_EXTERNAL_TICKET Ticket;
 } KERB_RETRIEVE_TKT_RESPONSE, *PKERB_RETRIEVE_TKT_RESPONSE;
+
+#define STATUS_NO_SUCH_LOGON_SESSION 0xC000005F
+#define SEC_E_NO_CREDENTIALS 0x80090303
+
+/* Query Ticket Cache */
+typedef struct _KERB_QUERY_TKT_CACHE_REQUEST {
+  KERB_PROTOCOL_MESSAGE_TYPE MessageType; // KerbQueryTicketCacheEx2Message
+  LUID LogonId;
+} KERB_QUERY_TKT_CACHE_REQUEST, *PKERB_QUERY_TKT_CACHE_REQUEST;
+
+typedef struct _KERB_TICKET_CACHE_INFO_EX {
+  UNICODE_STRING ClientName;
+  UNICODE_STRING ClientRealm;
+  UNICODE_STRING ServerName;
+  UNICODE_STRING ServerRealm;
+  LARGE_INTEGER StartTime;
+  LARGE_INTEGER EndTime;
+  LARGE_INTEGER RenewTime;
+  LONG EncryptionType;
+  ULONG TicketFlags;
+} KERB_TICKET_CACHE_INFO_EX, *PKERB_TICKET_CACHE_INFO_EX;
+
+typedef struct _KERB_TICKET_CACHE_INFO_EX2 {
+  UNICODE_STRING ClientName;
+  UNICODE_STRING ClientRealm;
+  UNICODE_STRING ServerName;
+  UNICODE_STRING ServerRealm;
+  LARGE_INTEGER StartTime;
+  LARGE_INTEGER EndTime;
+  LARGE_INTEGER RenewTime;
+  LONG EncryptionType;
+  ULONG TicketFlags;
+  /* Extended fields in Ex2: */
+  ULONG SessionKeyType;
+  ULONG BranchId;
+} KERB_TICKET_CACHE_INFO_EX2, *PKERB_TICKET_CACHE_INFO_EX2;
+
+typedef struct _KERB_QUERY_TKT_CACHE_RESPONSE {
+  KERB_PROTOCOL_MESSAGE_TYPE MessageType;
+  ULONG CountOfTickets;
+  KERB_TICKET_CACHE_INFO_EX Tickets[ANYSIZE_ARRAY];
+} KERB_QUERY_TKT_CACHE_RESPONSE, *PKERB_QUERY_TKT_CACHE_RESPONSE;
+
+typedef struct _KERB_QUERY_TKT_CACHE_EX2_RESPONSE {
+  KERB_PROTOCOL_MESSAGE_TYPE MessageType;
+  ULONG CountOfTickets;
+  KERB_TICKET_CACHE_INFO_EX2 Tickets[ANYSIZE_ARRAY];
+} KERB_QUERY_TKT_CACHE_EX2_RESPONSE, *PKERB_QUERY_TKT_CACHE_EX2_RESPONSE;
 
 typedef struct {
   long length;          /* Total count of octets (bytes) */

