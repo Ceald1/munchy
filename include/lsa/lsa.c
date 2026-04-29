@@ -415,7 +415,7 @@ NTSTATUS ListTickets() {
         printf("bad status: 0x%lx\n", status);
       }
       if (protocolStatus != 0x0) {
-        if (protocolStatus == 0xC0000135) {
+        if (protocolStatus == 0xC0000135 || protocolStatus == 0x8009030E) {
           continue;
         } // other stuff
 
@@ -427,7 +427,7 @@ NTSTATUS ListTickets() {
       if (retrivedResp == NULL) {
         continue;
       }
-      printf("----------\n%s\n---------\n",
+      printf("---------\n%s\n---------\n",
              base64_encode(retrivedResp->Ticket.EncodedTicket,
                            retrivedResp->Ticket.EncodedTicketSize));
       if (respVoid) {
