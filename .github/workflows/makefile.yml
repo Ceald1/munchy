@@ -60,9 +60,20 @@ jobs:
         find . -type f -name 'test.c' -exec rm -f {} \; 
         make
 
+    - name: Set release version
+      id: vars
+      run: echo "sha_short=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
       with:
         name: windows-binary
         path: ./build/munchy.exe
-        
+    - name: Create GitHub Release
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: build-${{ steps.vars.outputs.sha_short }}
+        name: Build ${{ steps.vars.outputs.sha_short }}
+        files: ./build/munchy.exe
+        generate_release_notes: true
