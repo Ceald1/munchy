@@ -37,9 +37,14 @@ jobs:
               "-L", "native=/home/runner/.xwin/sdk/lib/um/x86_64",
           ]
           EOF
+    - name: Install LLVM
+      run: |
+        wget https://apt.llvm.org/llvm.sh
+        chmod +x llvm.sh
+        sudo ./llvm.sh 18
 
     - name: Install dependencies
-      run: sudo apt install -y clang clang-tools lld && make
+      run: make
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
