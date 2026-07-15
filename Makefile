@@ -41,7 +41,7 @@
 CC = clang-cl
 XWIN = $(HOME)/.xwin
 
-CFLAGS = -Wall -Wextra -g -std=c11 \
+CFLAGS = -w -g -std=c11 \
   --target=x86_64-pc-windows-msvc \
   -imsvc $(XWIN)/crt/include \
   -imsvc $(XWIN)/sdk/include/ucrt \
