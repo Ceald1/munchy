@@ -39,7 +39,7 @@ jobs:
           EOF
 
     - name: Install dependencies
-      run: make
+      run: sudo apt install -y clang && make
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
