@@ -133,7 +133,7 @@ build/%.o: %.c
 
 build/$(TARGET).exe: $(OBJS)
 	@mkdir -p build
-	$(CC) --target=x86_64-pc-windows-msvc $(OBJS) $(LDFLAGS) -o $@
+	$(CC) -O0 --target=x86_64-pc-windows-msvc $(OBJS) $(LDFLAGS) -o $@
 
 clean:
 	rm -rf build
