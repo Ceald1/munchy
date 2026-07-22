@@ -14,6 +14,7 @@ CFLAGS = -w -g -01 -std=c11 \
 
 LDFLAGS = \
   -fuse-ld=lld-link \
+  -Xlinker /ignore:4099 \
   -Xlinker -machine:x64 \
   -Xlinker -libpath:$(XWIN)/crt/lib/x86_64 \
   -Xlinker -libpath:./lib \
